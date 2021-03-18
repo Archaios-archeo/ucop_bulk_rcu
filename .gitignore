@@ -13,3 +13,4 @@
 .Rproj.user
 *.gpkg-shm
 *.gpkg-wal
+.RDataTmp
