@@ -8,3 +8,6 @@
 *.Rproj
 *.cpg
 *.dbf
+*.RData
+*.Rhistory
+.Rproj.user
