@@ -71,7 +71,8 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
   st_drop_geometry() %>%
   mutate(START_DATE = "x",
          END_DATE = "x",
-         RELATION_TYPE = "is contained within / contains")
+         RELATION_TYPE = "is contained within / contains") %>%
+  unique()
 
 # sortie
 write.xlsx(tableau_des_relations_hp_os, "sorties/finales/500_features_bulk_1/relations_features_places.xlsx", append = TRUE)
