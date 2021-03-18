@@ -1,0 +1,10 @@
+
+*.prj
+*.shp
+*.xml
+*.shx
+*.xlsx
+*.gpkg
+*.Rproj
+*.cpg
+*.dbf
