@@ -63,7 +63,7 @@ hp_inclusion <- st_join(x = hp_inclusion %>%
 hp_inclusion
 
 
-# construction du tableau des relations (as RCU bulk upload)
+## construction du tableau des relations (as RCU bulk upload)
 tableau_des_relations_hp_os <- hp_inclusion %>%
   select(-`Heritage Place ID`:-Description) %>%
   rename(RESOURCEID_FROM = FEATURE_ID.x,
@@ -75,6 +75,19 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
 
 # sortie
 write.xlsx(tableau_des_relations_hp_os, "sorties/finales/500_features_bulk_1/relations_features_places.xlsx", append = TRUE)
+
+
+## création des données spatiales des heritage places
+donnees_sig_heritage_place <- heritage_place %>%
+  select(FEATURE_ID) %>%
+  st_cast(., "POLYGON")
+
+tm_shape(heritage_place) + tm_polygons()
+tm_shape(donnees_sig_heritage_place) + tm_polygons()
+
+# sortie
+st_write(donnees_sig_heritage_place, "sorties/finales/500_features_bulk_1/heritage_places_sig.gpkg", append = TRUE)
+
 
 
 #### heritage features ####
@@ -132,7 +145,7 @@ relation <- murs_et_batis_sides %>%
 tm_shape(relation) + tm_polygons()
 
 st_write(obj = relation, dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg", append = TRUE)
-# st_read(dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg")
+
 
 ### heritage features : spatial data ###
 donnees_sig_revues_500 <- donnees_sig %>%
