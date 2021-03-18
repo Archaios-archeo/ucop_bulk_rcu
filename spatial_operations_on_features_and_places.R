@@ -18,10 +18,8 @@ ucop_data_500 <- ucop_data_2019_2020_1 %>%
   slice(1:500)
 
 # dernière maj des données SIG, envoyées par VB (au 15/01/2019)
-donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2.shp", 
-                       stringsAsFactors = FALSE) %>%
-  st_set_crs(value = 32637)
-
+donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
+                       stringsAsFactors = FALSE)
 
 
 #### heritage places ####
@@ -86,8 +84,45 @@ donnees_sig_heritage_place <- heritage_place %>%
 tm_shape(heritage_place) + tm_polygons()
 tm_shape(donnees_sig_heritage_place) + tm_polygons()
 
+
+# Create a convex hull by heritage place to infer length and width
+# function convexHull is under development
+# see, https://github.com/jeffreyevans/spatialEco/blob/master/R/convexHull.R
+# need a loop to calculate every convex_hull geometry for each heritage place
+
+heritage_identifiant_traite <- seq(1, nrow(donnees_sig_heritage_place), 1)
+
+convex_hull_sf <- st_sfc(crs = 32637) %>%
+  st_as_sf()
+  
+
+for (heritage_identifiant_a_traiter in heritage_identifiant_traite) {
+convex_hull <-  donnees_sig_heritage_place %>%
+  rowid_to_column() %>%
+  filter(rowid == heritage_identifiant_a_traiter) %>%
+  st_segmentize(., dfMaxLength = 5) %>%
+  st_coordinates() %>%
+  as_tibble() %>%
+  st_as_sf(coords = c("X", "Y")) %>%
+  convexHull(alpha = 10000, sp = FALSE) %>%
+  st_geometry(.) %>%
+  st_as_sf(.) %>%
+  st_set_crs(., value = 32637)
+
+convex_hull_sf <- convex_hull_sf %>%
+  bind_rows(convex_hull) %>%
+  st_collection_extract(., type = "POLYGON")
+
+}
+
+tm_shape(convex_hull_sf) + tm_polygons()
+
+
+
+
+
 # sortie
-st_write(donnees_sig_heritage_place, "sorties/finales/500_features_bulk_1/heritage_places_sig.gpkg", append = TRUE)
+st_write(convex_hull_sf, "sorties/finales/500_features_bulk_1/heritage_places_sig_test_convex.gpkg", append = TRUE)
 
 
 
