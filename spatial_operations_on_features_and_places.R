@@ -36,7 +36,7 @@ heritage_place <- donnees_sig %>%
 
 
 # si différence, observation spatiale :
-tm_shape(heritage_place %>% filter(OBJECTID_1 == 5646)) + tm_polygons()
+tm_shape(heritage_place %>% filter(OBJECTID_1 == 5646)) + tm_polygons() # un indéterminé mal géré dans le SIG
 
 heritage_place <- heritage_place %>%
   filter(OBJECTID_1 != 5646)
@@ -77,22 +77,20 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
 write.xlsx(tableau_des_relations_hp_os, "sorties/finales/500_features_bulk_1/relations_features_places.xlsx", append = TRUE)
 
 
-
 #### heritage features ####
-# objectif : avoir une matrice des "touches" polygons murs avec les indéterminés,
+### objectif : gestion des polygones "relation indéterminée" ###
+# avoir une matrice des "touches" polygons murs avec les indéterminés,
 # sachant qu'il faut au moins une boundary de lien et pas un point, see issue : http://github.com/r-spatial/sf/issues/234
 murs_et_batis <- donnees_sig %>%
   left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number")) %>%
-  filter(`Feature form` %in% c("Wall"))
+  filter(`Feature form` %in% c("Wall", "Bank/Wall", "Bank/Earthwork") |
+          featInterpretationType == "Terrace/Retaining Wall") # à tester initialement aussi avec les "Structure" > c'est-à-dire les buildings
 
 # see and detect potential problems
 tm_shape(murs_et_batis) + tm_polygons()
 
-murs_et_batis <- murs_et_batis %>% filter(FEATURE_ID != "OS_00029")
-
 gestion_indetermines <- donnees_sig %>%
   filter(TYPE %in% c("Undetermined", "Undetermi*"))
-
 
 murs_et_batis_summarise <- murs_et_batis %>%
   filter(TYPE %ni% c("Undetermined", "Undetermi*")) %>% # virer les polygones qui sont associés à des ID mais qui sont des indéterminés
@@ -112,6 +110,9 @@ murs_et_batis_sides <- murs_et_batis_summarise %>%
           join = st_queen) %>% # spectific function for sides and not corners
   filter(!is.na(rowid))
 
+tm_shape(murs_et_batis_sides) + tm_polygons()
+
+
 gestion_indetermines_500 <- gestion_indetermines %>%
   rowid_to_column() %>%
   select(rowid) %>%
@@ -124,19 +125,48 @@ relation <- murs_et_batis_sides %>%
   bind_rows(gestion_indetermines_500) %>%
   group_by(FEATURE_ID, rowid) %>%
   summarise(n = n()) %>%
-  ungroup() %>% # il faut refaire un group_by ID pour que les murs qui ont 2 bouts avec des indé inclus à chaque fois (ex)
+  ungroup() %>% # il faut refaire un group_by ID pour que les murs qui ont 2 bouts avec des indé inclus à chaque fois
   group_by(FEATURE_ID) %>%
   summarise(n = n())
 
+tm_shape(relation) + tm_polygons()
+
 st_write(obj = relation, dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg", append = TRUE)
+# st_read(dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg")
 
+### heritage features : spatial data ###
+donnees_sig_revues_500 <- donnees_sig %>%
+  # sélection des 500 heritage features non recomposées
+  left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number")) %>% # jointure des 500 features traitées
+  filter(!is.na(`Feature form`)) %>% # vire toutes les entités pas liées aux 500 traitées
+  filter(`Feature form` != "Multi-Component") %>% # suppression des heritage places
+  filter(`Feature form` %ni% c("Wall", "Bank/Wall", "Bank/Earthwork")) %>% #suppression des murs and co
+  filter(featInterpretationType != "Terrace/Retaining Wall") %>% # suppression des murs and co
+  filter(TYPE %ni% c("Undetermined", "Undetermi*")) %>%
+  select(FEATURE_ID) %>%
+  # ajout dans le tableau des murs and co. intégrant les polygones "relations indéterminées"
+  bind_rows(relation %>% select(FEATURE_ID)) %>% # sélection seulement des identifiant
+  # ajout dans le tableau des murs and co. qui ne sont pas liés à des polygones "relations indéterminées"
+  bind_rows(murs_et_batis_summarise) %>%
+  # virer les "doublons" en faisant un summarise pour unir les polygones selon l'ID
+  group_by(FEATURE_ID) %>%
+  summarise(n = n()) %>%
+  ungroup()
 
+tm_shape(donnees_sig_revues_500) + tm_polygons()
 
+# contient des empty units ?
+any(is.na(st_dimension(donnees_sig_revues_500)))
 
+# if TRUE, lesquelles ?
+donnees_sig_revues_500 %>%
+  mutate(pas_de_geom = is.na(st_dimension(donnees_sig_revues_500))) %>%
+  filter(pas_de_geom == TRUE)
 
+# remove empty geometry (géom ponctuelles)
+donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
+  mutate(pas_de_geom = is.na(st_dimension(donnees_sig_revues_500))) %>%
+  filter(pas_de_geom == FALSE) %>%
+  select(-pas_de_geom)
 
-
-
-
-
-
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_polygones_features.gpkg", append = TRUE)

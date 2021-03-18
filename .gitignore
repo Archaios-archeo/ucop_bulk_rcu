@@ -11,3 +11,5 @@
 *.RData
 *.Rhistory
 .Rproj.user
+*.gpkg-shm
+*.gpkg-wal
