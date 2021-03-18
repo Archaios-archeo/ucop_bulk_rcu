@@ -2,6 +2,7 @@ library(tidyverse)
 library(readxl)
 library(openxlsx)
 library(sf)
+library(shotGroups)
 library(tmap)
 tmap_mode("view")
 
@@ -85,45 +86,48 @@ tm_shape(heritage_place) + tm_polygons()
 tm_shape(donnees_sig_heritage_place) + tm_polygons()
 
 
-# Create a convex hull by heritage place to infer length and width
-# function convexHull is under development
-# see, https://github.com/jeffreyevans/spatialEco/blob/master/R/convexHull.R
-# need a loop to calculate every convex_hull geometry for each heritage place
+# Create a minimal bounding box for each heritage feature,
+# then create a tibble with width and height of each bounding box > as un output
 
-heritage_identifiant_traite <- seq(1, nrow(donnees_sig_heritage_place), 1)
+heritage_identifiant <- seq(1, nrow(donnees_sig_heritage_place), 1)
 
-convex_hull_sf <- st_sfc(crs = 32637) %>%
-  st_as_sf()
+bounding_box_tibble <- tibble(
+  width = numeric(),
+  height = numeric()
+)
   
 
-for (heritage_identifiant_a_traiter in heritage_identifiant_traite) {
-convex_hull <-  donnees_sig_heritage_place %>%
+for (heritage_identifiant_a_traiter in heritage_identifiant) {
+bounding_box <- donnees_sig_heritage_place %>%
   rowid_to_column() %>%
   filter(rowid == heritage_identifiant_a_traiter) %>%
-  st_segmentize(., dfMaxLength = 5) %>%
+  st_segmentize(., dfMaxLength = 2) %>%
   st_coordinates() %>%
   as_tibble() %>%
-  st_as_sf(coords = c("X", "Y")) %>%
-  convexHull(alpha = 10000, sp = FALSE) %>%
-  st_geometry(.) %>%
-  st_as_sf(.) %>%
-  st_set_crs(., value = 32637)
+  rename("point.x" = "X") %>%
+  rename("point.y" = "Y") %>%
+  shotGroups::getMinBBox()
 
-convex_hull_sf <- convex_hull_sf %>%
-  bind_rows(convex_hull) %>%
-  st_collection_extract(., type = "POLYGON")
+bounding_box_sortie <- tibble(
+  width = bounding_box$width,
+  height = bounding_box$height
+)
+
+bounding_box_tibble <- bounding_box_tibble %>%
+  bind_rows(bounding_box_sortie)
 
 }
 
-tm_shape(convex_hull_sf) + tm_polygons()
+bounding_box_tibble <- bounding_box_tibble %>%
+  mutate(width_ok = if_else(condition = width < height, true = width, false = height)) %>%
+  mutate(length_ok = if_else(condition = width < height, true = height, false = width)) %>%
+  select(width_ok, length_ok)
 
-
-
-
+donnees_sig_heritage_place <- donnees_sig_heritage_place %>%
+  bind_cols(bounding_box_tibble)
 
 # sortie
-st_write(convex_hull_sf, "sorties/finales/500_features_bulk_1/heritage_places_sig_test_convex.gpkg", append = TRUE)
-
+st_write(donnees_sig_heritage_place, "sorties/finales/500_features_bulk_1/heritage_places_sig_2.gpkg", append = TRUE)
 
 
 #### heritage features ####
