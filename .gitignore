@@ -14,3 +14,6 @@
 *.gpkg-shm
 *.gpkg-wal
 .RDataTmp
+*.sbn
+*.sbx
+*.JPG
