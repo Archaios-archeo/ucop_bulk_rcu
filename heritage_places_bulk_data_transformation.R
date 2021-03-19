@@ -2,7 +2,6 @@ library(tidyverse)
 library(readxl)
 library(sf)
 library(tmap)
-library(naniar) # for replace_with_na
 library(openxlsx) # pour la sortie du fichier excel
 tmap_mode("view")
 
@@ -126,19 +125,6 @@ sortie_AdminAreasGroup <- sortie_DescriptionGroup %>%
   mutate(ADMINISTRATIVE_DIVISION_NAME.E44 = "Al Ula",
          ADMINISTRATIVE_DIVISION_TYPE.E55 = "County/Governorate") %>%
   select(-rowid)
-
-
-
-# MeasurementGroup : feuille demandée par la RCU. Concernant les HP, on en a pas
-sortie_MeasurementGroup <- sortie_DescriptionGroup %>%
-  rowid_to_column() %>%
-  select(rowid) %>%
-  mutate(MEASUREMENT_NUMBER.E60 = "x",
-         MEASUREMENT_UNIT.E58 = "x",
-         DIMENSION_TYPE.E55 = "x",
-         MEASUREMENT_SOURCE_TYPE.E55 = "x") %>%
-  select(-rowid)
-# je pense qu'on peut la supprimer: à voir avec Laura
 
 
 # PeriodGroup : feuille demandée par la RCU
