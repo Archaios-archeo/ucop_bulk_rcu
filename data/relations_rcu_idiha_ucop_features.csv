@@ -1,0 +1,138 @@
+rcu_entite,rcu_onglet,rcu_field_name,ucop_real_name,ucop_field_name,ucop_pattern,spec_funct,pipe_function,add_something,if_yes_what,question_julie,commentaires_personnels,etat_avancement_R,etat_avancement_rcu_ucop,personnes_resources
+_Features,zzAssessment,INVESTIGATOR_NAME.E41,People names,Surveyors,,,non,oui,|IDIHA Project/Archaios Staff,,,fini,fini,julie
+_Features,zzAssessment,INVESTIGATOR_ROLE_TYPE.E55,,,IDIHA Project/Archaios Staff,,oui,non,,,,fini,fini,julie
+_Features,zzAssessment,ASSESSMENT_ACTIVITY_TYPE.E55,Data Origin,Asses.Type,,,oui,non,,,,en cours,en cours,julie
+_Features,zzAssessment,ASSESSMENT_ACTIVITY_DATE.E49,Description date,yyyy.mm.dd,,,oui,non,,,,fini,fini,julie
+_Features,NameGroup,NAME.E41,OS_Number,Feat.ID,,,non,,,,,fini,fini,julie
+_Features,NameGroup,NAME_TYPE.E55,,,Alternative Reference,,non,,,,,fini,fini,julie
+_Features,DescriptionGroup,GENERAL_DESCRIPTION_TYPE.E55,,,General Description|Summary of Significance|Summary of Significance|Summary of Significance,,non,,,,,fini,en cours,emma
+_Features,DescriptionGroup,GENERAL_DESCRIPTION.E62,Description,,,o,oui,oui,ajouter les summary of significance,,,fini,en cours,emma
+_Features,GeometryGroup,LOCATION_CERTAINTY.I6,,,Definite,,non,,,,,en cours,en cours,vincent
+_Features,GeometryGroup,GEOMETRIC_PLACE_EXPRESSION.SP5,,,,o,non,,,,,en cours,en cours,vincent
+_Features,MeasurementGroup,MEASUREMENT_NUMBER.E60,Dimensions,"Dimensions.L,Dimensions.W,Dimensions.H",,,oui,non,,,,fini,fini,julie
+_Features,MeasurementGroup,MEASUREMENT_UNIT.E58,,,meters|meters|meters,,non,,,,,fini,fini,julie
+_Features,MeasurementGroup,DIMENSION_TYPE.E55,,,length|breadth/width|height,,non,,,,,fini,fini,julie
+_Features,MeasurementGroup,MEASUREMENT_SOURCE_TYPE.E55,,,Estimated|Estimated|Estimated,,non,,,,,fini,fini,julie
+_Features,FeatureFormGroup,FEATURE_FORM_TYPE.I4,Feature form,Feat.Form.Type,,,non,,,,,fini,fini,julie
+_Features,FeatureFormGroup,FEATURE_FORM_TYPE_CERTAINTY.I6,Form certainty,Feat.Form.Cert,,,non,,,,,fini,fini,julie
+_Features,FeatureFormGroup,FEATURE_SHAPE_TYPE.E55,Overall feature,Feat.Over.Shap,,,non,,,,,fini,fini,julie
+_Features,FeatureFormGroup,FEATURE_ARRANGEMENT_TYPE.E55,Form arrangement,Feat.Form.Argt,,,non,,,,,fini,fini,julie
+_Features,FeatureFormGroup,FEATURE_NUMBER_TYPE.E55,,,1,,non,,,,,fini,fini,julie
+_Features,FeatureFormGroup,FEATURE_ASSIGNMENT_INVESTIGATOR_NAME.E41,,,IDIHA Project/Archaios Staff,,non,,,,,fini,fini,julie
+_Features,InterpretationGroup,CULTURAL_PERIOD_TYPE.I4,Main periods,Feat.Chron.Per.Gen,,,oui,non,,,,fini,fini,julie
+_Features,InterpretationGroup,CULTURAL_PERIOD_DETAIL_TYPE.E55,Periods,Feat.Chron.Per.Det,,,oui,non,,,,fini,fini,julie
+_Features,InterpretationGroup,CULTURAL_PERIOD_CERTAINTY.I6,Periods certainity,Feat.Chron.Cert,,,oui,oui,,,,fini,fini,julie
+_Features,InterpretationGroup,ARCHAEOLOGICAL_FROM_DATE.E61,,,x,,oui,oui,,,,fini,fini,julie
+_Features,InterpretationGroup,ARCHAEOLOGICAL_TO_DATE.E61,,,x,,oui,oui,,,,fini,fini,julie
+_Features,InterpretationGroup,FUNCTION_TYPE.I4,featFunctionType,Feat.fInt.Type,,,oui,non,,,,fini,fini,julie
+_Features,InterpretationGroup,FUNCTION_CERTAINTY.I6,Function certainty,Feat.fInt.Cert,,,oui,oui,,,,fini,fini,julie
+_Features,InterpretationGroup,INTERPRETATION_TYPE.I4,featInterpretationType,Feat.Inte.Type,,,oui,oui,,,,fini,fini,julie
+_Features,InterpretationGroup,INTERPRETATION_CERTAINTY.I6,Interpretation certainty,Feat.Inte.Cert,,,oui,oui,,,,fini,fini,julie
+_Features,InterpretationGroup,DATE_INTERPRETATION_INFERENCE_MAKING_ACTOR_NAME.E41,,,IDIHA Project/Archaios Staff,,oui,oui,,,,fini,fini,julie
+_Features,AdminAreasGroup,ADMINISTRATIVE_DIVISION_NAME.E44,,,Al Ula,,non,oui,,,,fini,fini,julie
+_Features,AdminAreasGroup,ADMINISTRATIVE_DIVISION_TYPE.E55,,,County/Governorate,,non,oui,,,,fini,fini,julie
+_Features,AddressGroup,ADDRESS.E45,,,x,,non,,,,,fini,fini,julie
+_Features,AddressGroup,ADDRESS_TYPE.E55,,,x,,non,,,,,fini,fini,julie
+_Features,NOT,HERITAGE_CLASSIFICATION_TYPE.E55,,,Individual Feature,,non,,,,,fini,fini,julie
+_Features,NOT,HERITAGE_FEATURE_USE_TYPE.E55,In use/abandonned,Feat.UseAbond,,,non,,,,,fini,fini,julie
+_Features,NOT,GEOMETRY_EXTENT_CERTAINTY.I6,,,Definite,,non,,,,,fini,fini,julie
+_Features,NOT,DAMAGE_EXTENT_TYPE.E55,Disturbance Extent,Feat.Dist.Extent,,,non,,,,,fini,fini,julie
+_Features,NOT,OVERALL_CONDITION_STATE_TYPE.E55,Site condition,Feat.Cond.Overall,,,non,,,,,fini,fini,julie
+_Features,NOT,TOPOGRAPHY_TYPE.E55,,,Plain/Plateau,,non,,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_CAUSE_CATEGORY_TYPE.E55,Disturbance Categories,Feat.Dist.Categ,,,non,,,,,fini,fini,julie
+_Features,zDisturbanceGroup,EFFECT_TYPE.S9,Disturbance Effects,Feat.Dist.Effect,,,non,,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DAMAGE_TREND_TYPE.E55,,,x,,oui,oui,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_CAUSE_TYPE.I4,Disturbance Causes,Feat.Dist.Cause,,,non,,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_CAUSE_CERTAINTY.I6,,,Definite,,oui,oui,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_DATE_FROM.E61,,,x,,oui,oui,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_DATE_TO.E61,,,x,,oui,oui,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_DATE_OCCURRED_BEFORE.E61,Description date,yyyy.mm.dd,,,oui,oui,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_DATE_OCCURRED_ON.E61,,,x,,oui,oui,,,,fini,fini,julie
+_Features,zDisturbanceGroup,DISTURBANCE_CAUSE_ASSIGNMENT_ASSESSOR_NAME.E41,,,IDIHA Project/Archaios Staff,,oui,oui,,,,fini,fini,julie
+_Features,RecommendationGroup,RECOMMENDATION_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,RecommendationGroup,INTERVENTION_ACTIVITY_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,RecommendationGroup,PRIORITY_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,ThreatGroup,THREAT_TYPE.E55,Threat Categories,Feat.Threat.Categ,,,non,,,,,fini,fini,julie
+_Features,ThreatGroup,POTENTIAL_IMPACT_TYPE.E55,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,SECONDARY_THREAT_TYPE.E55,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,EXPOSURE.E62,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,VULNERABILITY_TYPE.E55,Threat Causes,Feat.Threat.Causes,,,non,,,,,fini,fini,julie
+_Features,ThreatGroup,THREAT_PROBABILITY_TYPE.E55,Threat Levels,Feat.Threat.Level,,,non,,,,,fini,fini,julie
+_Features,ThreatGroup,RISK_EXTENT_TYPE.E55,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,RISK_SEVERITY_TYPE.E55,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,RISK_LEVEL.I4,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,RISK_LEVEL_CERTAINTY.I6,,,x,,oui,oui,,,,fini,fini,julie
+_Features,ThreatGroup,RISK_EVALUATION_ASSESSOR_NAME.E41,,,x,,oui,oui,,,,fini,fini,julie
+_Features,MitigationGroup,MITIGATION_STRATEGY_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,MitigationGroup,MITIGATION_PRIORITY_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,ConditionRemarks,OVERALL_CONDITION_REMARKS_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,ConditionRemarks,OVERALL_CONDITION_REMARKS.E62,,,,,,,,,,fini,en cours,julie
+_Features,ModificationGroup,MODIFICATION_TYPE.E55,,,,,,,,,,fini,en cours,julie
+_Features,ModificationGroup,MODIFICATION_DATE.E49,,,,,,,,,,fini,fini,julie
+_Features,ConstructionGroup,CONSTRUCTION_MATERIAL.E57,,,,o,oui,oui,,,,en cours,en cours,julie
+_Features,ConstructionGroup,CONSTRUCTION_TECHNIQUE_TYPE.E55,,,,,,,,,,fini,fini,julie
+_Features,ConstructionGroup,CONSTRUCTION_NOTE.E62,architecturalComponentComments,Arch.Comp.Comt,,,non,,,,,fini,fini,julie
+_Features,RELATIONS,RESOURCEID_TO,,,,,,,,,,fini,en cours,julie
+_Features,RELATIONS,START_DATE,,,,,,,,,,fini,en cours,julie
+_Features,RELATIONS,END_DATE,,,,,,,,,,fini,en cours,julie
+_Features,RELATIONS,RELATION_TYPE,,,,,,,,,,fini,en cours,julie
+_Features,RELATIONS,NOTES,,,,,,,,,,fini,en cours,julie
+_HP,zzAssessment,INVESTIGATOR_NAME.E41,People names,Surveyors,,,non,oui,|IDIHA Project/Archaios Staff,,,,,
+_HP,zzAssessment,INVESTIGATOR_ROLE_TYPE.E55,,,IDIHA Project/Archaios Staff,,oui,non,,,,,,
+_HP,zzAssessment,ASSESSMENT_ACTIVITY_TYPE.E55,Data Origin,Asses.Type,,,oui,non,,,,,,
+_HP,zzAssessment,ASSESSMENT_ACTIVITY_DATE.E49,Description date,yyyy.mm.dd,,,oui,non,,,,,,
+_HP,NameGroup,NAME.E41,FEATURE_ID,Feat.ID,,,non,,,,,,,
+_HP,NameGroup,NAME_TYPE.E55,,,Alternative Reference,,non,,,,,,,
+_HP,GeometryGroup,LOCATION_CERTAINTY.I6,,,Definite,,,,,,,,,
+_HP,GeometryGroup,GEOMETRIC_PLACE_EXPRESSION.SP5,,,,,,,,,,,,
+_HP,DescriptionGroup,GENERAL_DESCRIPTION_TYPE.E55,,,General Description,,,,,,,,,
+_HP,DescriptionGroup,GENERAL_DESCRIPTION.E62,Description,,,,,,,,,,,
+_HP,AdminAreasGroup,ADMINISTRATIVE_DIVISION_NAME.E44,,,Al Ula,,,,,,,,,
+_HP,AdminAreasGroup,ADMINISTRATIVE_DIVISION_TYPE.E55,,,County/Governorate,,,,,,,,,
+_HP,MeasurementGroup,MEASUREMENT_NUMBER.E60,length_ok|width_ok,,,oui,,,,,,,,
+_HP,MeasurementGroup,MEASUREMENT_UNIT.E58,,,meters|meters,,,,,,,,,
+_HP,MeasurementGroup,DIMENSION_TYPE.E55,,,length|breadth/width,,,,,,,,,
+_HP,MeasurementGroup,MEASUREMENT_SOURCE_TYPE.E55,,,Estimated|Estimated,,,,,,,,,
+_HP,PeriodGroup,CULTURAL_PERIOD_TYPE.I4,Main periods,,,,,,,,,,,
+_HP,PeriodGroup,CULTURAL_PERIOD_DETAIL_TYPE.E55,Periods,,,,,,,,,,,
+_HP,PeriodGroup,CULTURAL_PERIOD_CERTAINTY.I6,Periods certainity,,,,,,,,,,,
+_HP,FeatureGroup,FEATURE_FORM_TYPE.I4,Feature form,,,,,,,,,,,
+_HP,FeatureGroup,FEATURE_FORM_TYPE_CERTAINTY.I6,Form certainty,,,,,,,,,,,
+_HP,FeatureGroup,FEATURE_SHAPE_TYPE.E55,Overall feature,,,,,,,,,,,
+_HP,FeatureGroup,FEATURE_ARRANGEMENT_TYPE.E55,Form arrangement,,,,,,,,,,,
+_HP,FeatureGroup,FEATURE_NUMBER_TYPE.E55,,,,oui,,,,,,,,
+_HP,FeatureGroup,FEATURE_ASSIGNMENT_INVESTIGATOR_NAME.E41,,,x,,,,,,,,,
+_HP,InterprGroup,INTERPRETATION_TYPE.I4,featInterpretationType,,,,,,,,,,,
+_HP,InterprGroup,INTERPRETATION_CERTAINTY.I6,Interpretation certainty,,,,,,,,,,,
+_HP,InterprGroup,INTERPRETATION_NUMBER_TYPE.E55,,,1,,,,,,,,,
+_HP,InterprGroup,FUNCTION_TYPE.I4,featFunctionType,,,,,,,,,,,
+_HP,InterprGroup,FUNCTION_CERTAINTY.I6,Function certainty,,,,,,,,,,,
+_HP,InterprGroup,FUNCTION_INTERPRETATION_INFERENCE_MAKING_ACTOR_NAME.E41,,,x,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_CAUSE_CATEGORY_TYPE.E55,Disturbance Categories,,,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_CAUSE_TYPE.I4,Disturbance Causes,,,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_CAUSE_CERTAINTY.I6,,,High,,,,,,,,,
+_HP,zDisturbanceGroup,EFFECT_TYPE.I4,Disturbance Effects,,,,,,,,,,,
+_HP,zDisturbanceGroup,EFFECT_CERTAINTY.I6,,,High,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_DATE_FROM.E61,,,x,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_DATE_TO.E61,,,x,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_DATE_OCCURRED_BEFORE.E61,Description date,,,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_DATE_OCCURRED_ON.E61,,,x,,,,,,,,,
+_HP,zDisturbanceGroup,DISTURBANCE_CAUSE_ASSIGNMENT_ASSESSOR_NAME.E41,,,x,,,,,,,,,
+_HP,ThreatGroup,THREAT_CATEGORY.I4,Threat Categories,,,,,,,,,,,
+_HP,ThreatGroup,THREAT_TYPE.I4,Threat Causes,,,,,,,,,,,
+_HP,ThreatGroup,THREAT_PROBABILITY.I6,Threat Levels,,,,,,,,,,,
+_HP,ThreatGroup,THREAT_INFERENCE_MAKING_ASSESSOR_NAME.E41,,,UCOP Team,,,,,,,,,
+_HP,NOT,HERITAGE_PLACE_TYPE.E55,,,Heritage Place (Individual),,,,,,,,,
+_HP,NOT,FEATURE_MORPHOLOGY_TYPE.E55,,,Positive/Built Feature,,,,,,,,,
+_HP,NOT,SITE_OVERALL_SHAPE_TYPE.E55,,,Polygonal,,,,,,,,,
+_HP,NOT,GEOMETRY_EXTENT_CERTAINTY.I6,,,High,,,,,,,,,
+_HP,NOT,OVERALL_ARCHAEOLOGICAL_CERTAINTY_VALUE.I6,,,Definite,,,,,,,,,
+_HP,NOT,GRID_ID.E42,Survey unit,,E4,,,,,,,,,
+_HP,NOT,TOPOGRAPHY_TYPE.E55,,,Valley Bed,,,,,,,,,
+_HP,NOT,OVERALL_CONDITION_STATE_TYPE.E55,Site condition,,,,,,,,,,,
+_HP,NOT,DAMAGE_EXTENT_TYPE.E55,Disturbance Extent,,,,,,,,,,,
+_HP,RELATIONS,RESOURCEID_FROM,,,,,,,,,,,,
+_HP,RELATIONS,RESOURCEID_TO,,,,,,,,,,,,
+_HP,RELATIONS,START_DATE,,,x,,,,,,,,,
+_HP,RELATIONS,END_DATE,,,x,,,,,,,,,
+_HP,RELATIONS,RELATION_TYPE,,,is contained within / contains,,,,,,,,,
