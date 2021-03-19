@@ -18,41 +18,80 @@ ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
   slice(1:500)
 
-# dernière maj des données SIG, envoyées par VB (au 15/01/2019)
+# dernière MAJ des données SIG, envoyées par GG (au 18/03/2021)
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
                        stringsAsFactors = FALSE)
 
 
 #### heritage places ####
-# combien d'hp dans bloc de 500 OS bdd
-ucop_data_500 %>%
-  filter(`Feature form` == "Multi-Component")
+# quelles d'hp sur 2019
+hp_2019_bdd <- ucop_data_2019_2020_1 %>%
+  filter(`Feature form` == "Multi-Component") %>%
+  filter(annee == "2019")
 
-# les hp dans le SIG
+# les hp dans le SIG : creating data
 heritage_place <- donnees_sig %>%
-  left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number")) %>%
+  left_join(x = ., y = hp_2019_bdd, by = c("FEATURE_ID" = "OS_Number")) %>%
   filter(`Feature form` == "Multi-Component")
 
 
-# si différence, observation spatiale :
-tm_shape(heritage_place %>% filter(OBJECTID_1 == 5646)) + tm_polygons() # un indéterminé mal géré dans le SIG
+#### verification process ####
+### Si plusieurs polygones associés à des heritage places : lesquelles ? ###
+id_hp_duplicated <- heritage_place %>%
+  mutate(duplication = duplicated(x = FEATURE_ID)) %>%
+  filter(duplication == TRUE) %>%
+  select(FEATURE_ID, duplication) %>%
+  st_drop_geometry()
 
+# data to visualisize these polygons
+heritage_place_duplicated <- heritage_place %>%
+  select(OBJECTID_1, FEATURE_ID, TYPE) %>%
+  left_join(., y = id_hp_duplicated, by = "FEATURE_ID") %>% 
+  filter(duplication == TRUE) %>%
+  # if there is empty polygon, suppress
+  mutate(pas_de_geom = is.na(st_dimension(.))) %>%
+  filter(pas_de_geom == FALSE)
+  
+tm_shape(heritage_place_duplicated) + tm_polygons()
+
+
+# if necessary : suppress wrong objectID
 heritage_place <- heritage_place %>%
-  filter(OBJECTID_1 != 5646)
+  filter(OBJECTID_1 %ni% c("5646", "5647", "5648")) # 3 time, same undeterminated relation polygon between 2 walls
 
+# in data 2019 an heritage place is composed by 2 polygons, need to merge them
+heritage_place <- heritage_place %>%
+  group_by(FEATURE_ID) %>%
+  summarise() %>%
+  left_join(x = ., y = hp_2019_bdd, by = c("FEATURE_ID" = "OS_Number"))
+
+# list of BDD heritage places not contain in GIS polygon data
+no_spatial_hp_data <- hp_2019_bdd %>%
+  select(OS_Number) %>%
+  left_join(., y = heritage_place %>% 
+              select(FEATURE_ID) %>%
+              mutate(sig = "oui") %>%
+              st_drop_geometry(),
+            by = c("OS_Number" = "FEATURE_ID")) %>%
+  filter(is.na(sig))
+
+write.xlsx(x = no_spatial_hp_data, file = "sorties/intermediaires/2019_pas_sig_heritage_place.xlsx", append = TRUE)
+rm(heritage_place_duplicated, id_hp_duplicated, no_spatial_hp_data)
+
+#### inclusion relations between heritage places and heritages features ####
 ## récupération des relations d'inclusions entre heritage features et heritage places (après tests diff. méthodes)
 # méthode la plus robuste : buffer sur l'heritage place et fonction d'inclusion
 hp_inclusion <- heritage_place %>%
   st_buffer(dist = 0.5) # on est en mètres, donc distance de 50 cm
 
-# lien sig/bdd
-donnees_sig_bdd <- donnees_sig %>%
-  left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number"))
+# lien buffer et requête sur base (prise en considération aussi de 2020-1 si création ensuite)
+donnees_sig_complete_bdd <- donnees_sig %>%
+  left_join(x = ., y = ucop_data_2019_2020_1, by = c("FEATURE_ID" = "OS_Number"))
 
 
 hp_inclusion <- st_join(x = hp_inclusion %>% 
                           select(FEATURE_ID), # on ne garde que la géométrie et les identifiants
-                        y = donnees_sig_bdd %>% 
+                        y = donnees_sig_complete_bdd %>% 
                           select(FEATURE_ID, `Heritage Place ID`, `Survey unit`:Description) %>% # sélection des infos essentielles
                           filter(!is.na(FEATURE_ID)), # vire tous les éléments SIG qui ne sont pas lier à des entités bdd
                         join = st_contains) %>% # hp inclusion contains les données sig
@@ -74,16 +113,16 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
   unique()
 
 # sortie
-write.xlsx(tableau_des_relations_hp_os, "sorties/finales/500_features_bulk_1/relations_features_places.xlsx", append = TRUE)
+write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2019_relations_features_places.xlsx")
 
 
 ## création des données spatiales des heritage places
-donnees_sig_heritage_place <- heritage_place %>%
+heritage_place_simple_polygon <- heritage_place %>%
   select(FEATURE_ID) %>%
   st_cast(., "POLYGON")
 
 tm_shape(heritage_place) + tm_polygons()
-tm_shape(donnees_sig_heritage_place) + tm_polygons()
+tm_shape(heritage_place_simple_polygon) + tm_polygons()
 
 
 # Create a minimal bounding box for each heritage feature,
@@ -127,7 +166,7 @@ donnees_sig_heritage_place <- donnees_sig_heritage_place %>%
   bind_cols(bounding_box_tibble)
 
 # sortie
-st_write(donnees_sig_heritage_place, "sorties/finales/500_features_bulk_1/heritage_places_sig_2.gpkg", append = TRUE)
+st_write(donnees_sig_heritage_place, "sorties/finales/500_features_bulk_1/heritage_places_sig_2.gpkg")
 
 
 #### heritage features ####
@@ -184,7 +223,7 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg", append = TRUE)
+st_write(obj = relation, dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg")
 
 
 ### heritage features : spatial data ###
@@ -222,4 +261,4 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   filter(pas_de_geom == FALSE) %>%
   select(-pas_de_geom)
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_polygones_features.gpkg", append = TRUE)
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_polygones_features.gpkg")
