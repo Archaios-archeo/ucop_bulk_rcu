@@ -18,6 +18,15 @@ ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
                        stringsAsFactors = FALSE)
 
+# dernière MAJ des données ponctuelles SIG, envoyées par VB (au 19/03/2021)
+donnees_sig_points <- st_read(dsn = "data/2021_01_features_general/feature_point.shp", 
+                              stringsAsFactors = FALSE)
+
+# dernière MAJ des données linéaires SIG, VB (au 19/03/2021)
+donnees_sig_lines <- st_read(dsn = "data/2021_01_features_general/feature_line.shp", 
+                              stringsAsFactors = FALSE)
+
+
 
 #### heritage places ####
 # quelles d'hp sur 2019
@@ -176,7 +185,7 @@ ucop_data_500 <- ucop_data_2019_2020_1 %>%
   slice(1:500)
 
 
-### objectif : gestion des polygones "relation indéterminée" ###
+#### gestion des polygones "relation indéterminée" ####
 # avoir une matrice des "touches" polygons murs avec les indéterminés,
 # sachant qu'il faut au moins une boundary de lien et pas un point, see issue : http://github.com/r-spatial/sf/issues/234
 murs_et_batis <- donnees_sig %>%
@@ -229,7 +238,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/intersect_indetermines_sides.gpkg")
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_1/intersect_indetermines_sides.gpkg", append=FALSE)
+# probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
+
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_1/intersect_indetermines_sides_gg.gpkg")
 
 
 ### heritage features : spatial data ###
@@ -243,7 +255,7 @@ donnees_sig_revues_500 <- donnees_sig %>%
   filter(TYPE %ni% c("Undetermined", "Undetermi*")) %>%
   select(FEATURE_ID) %>%
   # ajout dans le tableau des murs and co. intégrant les polygones "relations indéterminées"
-  bind_rows(relation %>% select(FEATURE_ID)) %>% # sélection seulement des identifiant
+  bind_rows(relation_revues %>% select(FEATURE_ID)) %>% # sélection seulement des identifiant
   # ajout dans le tableau des murs and co. qui ne sont pas liés à des polygones "relations indéterminées"
   bind_rows(murs_et_batis_summarise) %>%
   # virer les "doublons" en faisant un summarise pour unir les polygones selon l'ID
@@ -267,4 +279,32 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   filter(pas_de_geom == FALSE) %>%
   select(-pas_de_geom)
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_polygones_features.gpkg")
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", 
+         layer = "polygons", append=FALSE)
+
+
+#### transformation des points en gpkg ####
+donnees_sig_points <- donnees_sig_points %>%
+  left_join(x = ., y = ucop_data_500 %>% 
+              mutate(ucop_500 = "oui"), 
+            by = c("FEATURE_ID" = "OS_Number")) %>%
+  filter(ucop_500 == "oui") %>%
+  select(FEATURE_ID)
+
+st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", 
+         layer = "points", append=TRUE)
+
+
+#### transformation des lines en gpkg ####
+donnees_sig_lines <- donnees_sig_lines %>%
+  left_join(x = ., y = ucop_data_500 %>% 
+              mutate(ucop_500 = "oui"), 
+            by = c("FEATURE_ID" = "OS_Number")) %>%
+  filter(ucop_500 == "oui") %>%
+  select(FEATURE_ID) %>%
+  st_cast(., "LINESTRING")
+
+st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg",
+         layer = "lines", append=TRUE)
+
+
