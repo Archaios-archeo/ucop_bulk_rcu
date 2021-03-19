@@ -36,6 +36,29 @@ repetition_pattern_n_exact <- function(x, variable_a_bon_pattern, variable_revue
 }
 
 
+# fonction à documenter : assez dégueu mais fonctionnel
+repetition_pattern_n_if_sup_2 <- function(x, variable_a_bon_pattern, variable_revue){
+  
+  x$pattern <- str_count(string = x[[variable_a_bon_pattern]], pattern = "\\|") + 1
+  x$pattern <- if_else(condition = x$pattern <=2, 1, x$pattern - 2)
+  
+  for (i in 1:nrow(x)) {
+    nombre_de_pattern <- x[i,"pattern", drop = TRUE]
+    
+    x[i, variable_revue] <- paste0(
+      replicate(n = nombre_de_pattern, expr = x[i, variable_revue]), 
+      collapse = "|")
+    
+  }
+  
+  x <- x %>%
+    select(-pattern)
+  
+  return(x)
+  
+}
+
+
 #' function for undetermined polygones > need to add documentation
 st_queen <- function(a, b = a) st_relate(a, b, pattern = "****1****") # pattern to find sides, not corners
 
