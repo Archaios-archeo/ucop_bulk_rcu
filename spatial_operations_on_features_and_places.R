@@ -109,7 +109,7 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
   unique()
 
 # sortie
-write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2019_relations_features_places.xlsx")
+write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2019/2019_relations_features_places.xlsx")
 
 rm(hp_inclusion, donnees_sig_complete_bdd, tableau_des_relations_hp_os)
 
@@ -164,7 +164,7 @@ heritage_place_simple_polygon <- heritage_place_simple_polygon %>%
   bind_cols(bounding_box_tibble)
 
 # sortie
-st_write(heritage_place_simple_polygon, "sorties/finales/heritage_places_2019.gpkg")
+st_write(heritage_place_simple_polygon, "sorties/finales/2019/heritage_places_2019.gpkg")
 
 
 rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
