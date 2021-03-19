@@ -14,10 +14,6 @@ source("bulk_functions.R")
 # general database
 ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
 
-# sélection des 500 premières features (versement par blocs)
-ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(1:500)
-
 # dernière MAJ des données SIG, envoyées par GG (au 18/03/2021)
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
                        stringsAsFactors = FALSE)
@@ -115,20 +111,23 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
 # sortie
 write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2019_relations_features_places.xlsx")
 
+rm(hp_inclusion, donnees_sig_complete_bdd, tableau_des_relations_hp_os)
 
-## création des données spatiales des heritage places
+
+#### heritage places with width and length ####
 heritage_place_simple_polygon <- heritage_place %>%
   select(FEATURE_ID) %>%
-  st_cast(., "POLYGON")
+  st_cast(., "POLYGON") # transform as polygon
 
 tm_shape(heritage_place) + tm_polygons()
 tm_shape(heritage_place_simple_polygon) + tm_polygons()
 
 
-# Create a minimal bounding box for each heritage feature,
+# Length and width calculations :
+# Create a minimal bounding box for each heritage place,
 # then create a tibble with width and height of each bounding box > as un output
 
-heritage_identifiant <- seq(1, nrow(donnees_sig_heritage_place), 1)
+heritage_identifiant <- seq(1, nrow(heritage_place_simple_polygon), 1)
 
 bounding_box_tibble <- tibble(
   width = numeric(),
@@ -137,10 +136,9 @@ bounding_box_tibble <- tibble(
   
 
 for (heritage_identifiant_a_traiter in heritage_identifiant) {
-bounding_box <- donnees_sig_heritage_place %>%
+bounding_box <- heritage_place_simple_polygon %>%
   rowid_to_column() %>%
   filter(rowid == heritage_identifiant_a_traiter) %>%
-  st_segmentize(., dfMaxLength = 2) %>%
   st_coordinates() %>%
   as_tibble() %>%
   rename("point.x" = "X") %>%
@@ -158,18 +156,26 @@ bounding_box_tibble <- bounding_box_tibble %>%
 }
 
 bounding_box_tibble <- bounding_box_tibble %>%
-  mutate(width_ok = if_else(condition = width < height, true = width, false = height)) %>%
   mutate(length_ok = if_else(condition = width < height, true = height, false = width)) %>%
-  select(width_ok, length_ok)
+  mutate(width_ok = if_else(condition = width < height, true = width, false = height)) %>%
+  select(length_ok, width_ok)
 
-donnees_sig_heritage_place <- donnees_sig_heritage_place %>%
+heritage_place_simple_polygon <- heritage_place_simple_polygon %>%
   bind_cols(bounding_box_tibble)
 
 # sortie
-st_write(donnees_sig_heritage_place, "sorties/finales/500_features_bulk_1/heritage_places_sig_2.gpkg")
+st_write(heritage_place_simple_polygon, "sorties/finales/heritage_places_2019.gpkg")
+
+
+rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 
 
 #### heritage features ####
+# sélection des 500 premières features (versement par blocs)
+ucop_data_500 <- ucop_data_2019_2020_1 %>%
+  slice(1:500)
+
+
 ### objectif : gestion des polygones "relation indéterminée" ###
 # avoir une matrice des "touches" polygons murs avec les indéterminés,
 # sachant qu'il faut au moins une boundary de lien et pas un point, see issue : http://github.com/r-spatial/sf/issues/234
