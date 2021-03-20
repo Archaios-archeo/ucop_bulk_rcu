@@ -59,6 +59,26 @@ repetition_pattern_n_if_sup_2 <- function(x, variable_a_bon_pattern, variable_re
 }
 
 
+# fonction à documenter/valider
+change_date <- function(x, variable_date){
+  
+  ligne_precedente <- seq(1, nrow(x), 1) - 1
+  ligne_precedente[1] <- 1
+  
+for (i in 1:nrow(x)) {
+  x <- x %>%
+    mutate(variable_date = if_else(
+      condition = nchar(variable_date) != 10,
+      true = variable_date[ligne_precedente],
+      false = variable_date
+    ))
+}
+  
+  return(x)
+  
+}
+
+
 #' function for undetermined polygones > need to add documentation
 st_queen <- function(a, b = a) st_relate(a, b, pattern = "****1****") # pattern to find sides, not corners
 
