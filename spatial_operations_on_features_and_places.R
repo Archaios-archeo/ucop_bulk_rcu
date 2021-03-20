@@ -10,7 +10,7 @@ tmap_mode("view")
 source("bulk_functions.R")
 
 
-#### Data sources ####
+#### DATA SOURCES ####
 # general database
 ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
 
@@ -28,7 +28,7 @@ donnees_sig_lines <- st_read(dsn = "data/2021_01_features_general/feature_line.s
 
 
 
-#### heritage places ####
+#### HERITAGE PLACES ####
 # quelles d'hp sur 2019
 hp_2019_bdd <- ucop_data_2019_2020_1 %>%
   filter(`Feature form` == "Multi-Component") %>%
@@ -179,7 +179,7 @@ st_write(heritage_place_simple_polygon, "sorties/finales/2019/heritage_places_20
 rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 
 
-#### heritage features ####
+#### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
   slice(1:500)
