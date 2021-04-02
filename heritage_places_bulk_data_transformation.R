@@ -167,6 +167,9 @@ sortie_FeatureGroup <- data_pivot %>%
     n >= 101 & n <= 500 ~ "100 to 500", # leurs intervalles ne sont mêmes pas convenables
   )) %>%
   mutate(FEATURE_ASSIGNMENT_INVESTIGATOR_NAME.E41 = "x") %>%
+  mutate(FEATURE_SHAPE_TYPE.E55 = str_replace_all(string = FEATURE_SHAPE_TYPE.E55, 
+                                                  pattern = "Rectilinear", 
+                                                  replacement = "Sub-rectangular")) %>%
   select(-NAME.E41, -n) %>%
   relocate(FEATURE_ARRANGEMENT_TYPE.E55, .after = FEATURE_SHAPE_TYPE.E55)
 
