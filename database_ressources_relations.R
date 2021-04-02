@@ -17,16 +17,19 @@ ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
   select(OS_Number, `People names`, `Feature form`, featInterpretationType, featFunctionType, `Description date`) %>%
-  slice(1:500)
+  slice(501:1000) %>%
+  filter(OS_Number %ni% c("OS_01025", "OS_01022")) %>% # ce sont des HP qanats, mal enregistrés dans BDD > reprendre plus tard
+  bind_rows(ucop_data_2019_2020_1 %>% filter(OS_Number == "OS_00007")) %>%
+  arrange(OS_Number)
 
 # spatial data for spatial coordinates
 heritage_place_gis <- st_read("sorties/finales/2019/heritage_places_2019.gpkg")
 
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_2/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
-heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", layer = "lines")
+heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg", layer = "lines")
 
-heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", layer = "points")
+heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_2/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
 # inputs : as lists
@@ -35,7 +38,7 @@ working_directory <- getwd()
 #### FROM JPG TO PNG : photos ####
 
 # specific directory
-working_directory_photo <- paste0(working_directory, "/data/photos/features_places_bulk_1/")
+working_directory_photo <- paste0(working_directory, "/data/photos/features_places_bulk_2/")
 working_directory_photo_JPG <- list.files(path = working_directory_photo, pattern = "JPG$")
 working_directory_photo_jpg <- list.files(path = working_directory_photo, pattern = "jpg$")
 
@@ -66,7 +69,7 @@ for(i in 1:length(liste_files)){
 
 
 #### DB AND PHOTOS RELATIONS ####
-working_directory_photo <- paste0(working_directory, "/sorties/finales/500_features_bulk_1/photos/")
+working_directory_photo <- paste0(working_directory, "/sorties/finales/500_features_bulk_2/photos/")
 working_directory_photo_png <- list.files(path = working_directory_photo, pattern = "png$")
 
 
@@ -100,17 +103,22 @@ tableau_des_relations_photos_feature_hp <- relations %>%
   mutate(START_DATE = "x",
          END_DATE = "x",
          RELATION_TYPE = "Heritage Resource - Information Resource",
-         NOTES = "x") %>%
+         NOTES = str_c("photo of", RESOURCEID_TO, sep = " ")) %>%
   unique() %>%
   arrange(RESOURCEID_TO)
 
 # sortie
 tableau_des_relations_photos_feature_hp <- list("RELATIONS" = tableau_des_relations_photos_feature_hp)
 openxlsx::write.xlsx(tableau_des_relations_photos_feature_hp, 
-                     "sorties/finales/500_features_bulk_1/UCOP_relations_photos_features_places.xlsx", append = TRUE)
+                     "sorties/finales/500_features_bulk_2/UCOP_relations_photos_features_places.xlsx",
+                     append = TRUE)
 
 
 #### BULK : PHOTOS ####
+relations <- relations %>%
+  select(liste_photos_dossier:`Description date`)
+
+
 # creation of centroids from heritage places and heritages features for each photo of entity
 relations_bulk <- relations %>%
   rename(FEATURE_ID = OS_Number) %>%
@@ -148,7 +156,8 @@ relations_bulk <- relations %>%
                         by = "FEATURE_ID")
   ) %>%
   filter(!is.na(SPATIAL_COORDINATES_GEOMETRY.E47)) %>%
-  arrange(FEATURE_ID)
+  arrange(FEATURE_ID) %>%
+  unique()
 
 ## attention : bien vérifier qu'on ait les mêmes nb de lignes avec relations tout court
 
@@ -161,7 +170,7 @@ relations_bulk <- relations_bulk %>%
 
 # NOT : feuille demandée par la RCU
 sortie_NOT <- relations_bulk %>%
-  select(-FEATURE_ID:-featFunctionType, -dans_db, -n, -ID) %>%
+  select(liste_photos_dossier, `Description date`, SPATIAL_COORDINATES_GEOMETRY.E47) %>%
   rename(CATALOGUE_ID.E42 = liste_photos_dossier,
          DATE_OF_ACQUISITION.E50 = `Description date`) %>%
   mutate(INFORMATION_RESOURCE_TYPE.E55 = "Photograph",
