@@ -309,6 +309,123 @@ openxlsx::write.xlsx(tableau_des_relations_sketches_feature_hp,
 
 
 
+#### BULK : SKETCHES ####
+# creation of centroids from heritage places and heritages features for each sketch
+relations_bulk <- relations %>%
+  rename(FEATURE_ID = OS_Number) %>%
+  left_join(., y = heritage_place_gis %>%
+              st_centroid(.) %>%
+              st_transform(x = ., crs = 4326) %>%
+              select(geom, FEATURE_ID) %>%
+              mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+              st_drop_geometry(),
+            by = "FEATURE_ID") %>%
+  bind_rows(relations %>%
+              rename(FEATURE_ID = OS_Number) %>%
+              left_join(., y = heritage_features_polygons_gis %>%
+                          st_centroid(.) %>%
+                          st_transform(x = ., crs = 4326) %>%
+                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+                          st_drop_geometry(),
+                        by = "FEATURE_ID")
+  ) %>%
+  bind_rows(relations %>%
+              rename(FEATURE_ID = OS_Number) %>%
+              left_join(., y = heritage_features_lines_gis %>%
+                          st_centroid(.) %>%
+                          st_transform(x = ., crs = 4326) %>%
+                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+                          st_drop_geometry(),
+                        by = "FEATURE_ID")
+  ) %>%
+  bind_rows(relations %>%
+              rename(FEATURE_ID = OS_Number) %>%
+              left_join(., y = heritage_features_points_gis %>%
+                          st_transform(x = ., crs = 4326) %>%
+                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+                          st_drop_geometry(),
+                        by = "FEATURE_ID")
+  ) %>%
+  filter(!is.na(SPATIAL_COORDINATES_GEOMETRY.E47)) %>%
+  arrange(FEATURE_ID)
+
+## attention : bien vérifier qu'on ait les mêmes nb de lignes avec relations tout court
+
+
+# vérification spatiale
+tm_shape(st_as_sf(st_as_sfc(relations_bulk$SPATIAL_COORDINATES_GEOMETRY.E47))) + tm_dots()
+
+relations_bulk <- relations_bulk %>%
+  rowid_to_column(var = "ID")
+
+# NOT : feuille demandée par la RCU (note : attention, il y a plus de relations que de sketches)
+sortie_NOT <- relations_bulk %>%
+  rename(CATALOGUE_ID.E42 = liste_sketches_dossier,
+         DATE_OF_ACQUISITION.E50 = `Description date`) %>%
+  mutate(INFORMATION_RESOURCE_TYPE.E55 = "Drawing/Reconstruction",
+         INFORMATION_CARRIER_FORMAT_TYPE.E55 = "Digital Image",
+         IMAGERY_SOURCE_TYPE.E55 = "Royal Commission for Al Ula (RCU)",
+         IMAGERY_CREATOR_APPELLATION.E82 = "UCOP Team",
+         IMAGERY_SAMPLED_RESOLUTION_TYPE.E55 = "Other/Unlisted",
+         PROCESSING_TYPE.E55 = "Not Applicable",
+         IMAGERY_DATE_OF_PUBLICATION.E50 = as.character(Sys.Date()),
+         RIGHT_TYPE.E55 = "Copyright (All Rights Reserved)",
+         DESCRIPTION.E62 = str_c("sketch of a ", str_to_lower(`Feature form`), ": ", str_to_lower(featInterpretationType), sep = "")) %>%
+  select(-FEATURE_ID:-featFunctionType, -dans_db, -n, -ID) %>%
+  relocate(CATALOGUE_ID.E42, .after = INFORMATION_CARRIER_FORMAT_TYPE.E55) %>%
+  relocate(DATE_OF_ACQUISITION.E50, .before = IMAGERY_DATE_OF_PUBLICATION.E50) %>%
+  relocate(SPATIAL_COORDINATES_GEOMETRY.E47, .after = RIGHT_TYPE.E55) %>%
+  mutate(duplicata_png = duplicated(x = CATALOGUE_ID.E42)) %>%
+  filter(duplicata_png == FALSE) %>%
+  select(-duplicata_png)
+  
+# à simplifier avec fonction générale
+ligne_precedente <- seq(1, nrow(sortie_NOT), 1) - 1
+ligne_precedente[1] <- 1
+
+for (i in 1:nrow(sortie_NOT)) {
+  sortie_NOT <- sortie_NOT %>%
+    mutate(DATE_OF_ACQUISITION.E50 = if_else(
+      condition = nchar(DATE_OF_ACQUISITION.E50) != 10 | is.na(DATE_OF_ACQUISITION.E50),
+      true = as.character(DATE_OF_ACQUISITION.E50[ligne_precedente]),
+      false = DATE_OF_ACQUISITION.E50
+    ))
+}
+
+
+# ImageDetails : feuille demandée par la RCU
+sortie_ImageDetails <- relations_bulk %>%
+  mutate(duplicata_png = duplicated(x = liste_sketches_dossier)) %>%
+  filter(duplicata_png == FALSE) %>%
+  select(ID) %>%
+  mutate(IMAGERY_PLATFORM_TYPE.E55 = "Hand-operated (Ground)",
+         IMAGERY_SENSOR_TYPE.E55 = "Not Applicable",
+         IMAGERY_BANDS_TYPE.E55 = "Not Applicable",
+         IMAGERY_CAMERA_SENSOR_TYPE.E55 = "Not Applicable",
+         IMAGERY_CAMERA_SENSOR_RESOLUTION_TYPE.E55 = "Not Applicable") %>%
+  select(-ID)
+
+
+# ImageGroup : feuille demandée par la RCU
+sortie_ImageGroup <- relations_bulk %>%
+  mutate(duplicata_png = duplicated(x = liste_sketches_dossier)) %>%
+  filter(duplicata_png == FALSE) %>%
+  select(liste_sketches_dossier) %>%
+  rename(FILE_PATH.E62 = liste_sketches_dossier) %>%
+  mutate(THUMBNAIL.E62 = str_c("thumb_", FILE_PATH.E62))
+
+
+
+## sorties par sheets dans un même fichier excel
+list_of_datasets <- list("ImageDetails" = sortie_ImageDetails, 
+                         "NOT" = sortie_NOT,
+                         "ImageGroup" = sortie_ImageGroup)
+
+write.xlsx(list_of_datasets, 
+           file = "sorties/finales/500_features_bulk_1/UCOP_ressources_sketches.xlsx", 
+           append = TRUE)
+
+
 
 
 
