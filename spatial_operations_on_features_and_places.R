@@ -182,7 +182,9 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(1:500)
+  slice(501:1000) %>%
+  bind_rows(ucop_data_2019_2020_1 %>% filter(OS_Number == "OS_00007")) %>%
+  arrange(OS_Number)
 
 
 #### gestion des polygones "relation indéterminée" ####
@@ -191,7 +193,7 @@ ucop_data_500 <- ucop_data_2019_2020_1 %>%
 murs_et_batis <- donnees_sig %>%
   left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number")) %>%
   filter(`Feature form` %in% c("Wall", "Bank/Wall", "Bank/Earthwork") |
-          featInterpretationType == "Terrace/Retaining Wall") # à tester initialement aussi avec les "Structure" > c'est-à-dire les buildings
+          featInterpretationType == "Terrace/Retaining Wall")
 
 # see and detect potential problems
 tm_shape(murs_et_batis) + tm_polygons()
@@ -238,10 +240,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_1/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_2/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_1/intersect_indetermines_sides_gg.gpkg")
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_2/intersect_indetermines_sides_jg.gpkg")
 
 
 ### heritage features : spatial data ###
@@ -279,7 +281,7 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   filter(pas_de_geom == FALSE) %>%
   select(-pas_de_geom)
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 
@@ -291,7 +293,7 @@ donnees_sig_points <- donnees_sig_points %>%
   filter(ucop_500 == "oui") %>%
   select(FEATURE_ID)
 
-st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg", 
          layer = "points", append=TRUE)
 
 
@@ -302,9 +304,11 @@ donnees_sig_lines <- donnees_sig_lines %>%
             by = c("FEATURE_ID" = "OS_Number")) %>%
   filter(ucop_500 == "oui") %>%
   select(FEATURE_ID) %>%
+  # attention, si et seulement si les multilinstring sont de traditionnelles polylignes continues
+  # si non, transformer en réel multilinestring car cela a du sens
   st_cast(., "LINESTRING")
 
-st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_1/donnees_spatiales_features.gpkg",
+st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg",
          layer = "lines", append=TRUE)
 
 
