@@ -59,24 +59,25 @@ repetition_pattern_n_if_sup_2 <- function(x, variable_a_bon_pattern, variable_re
 }
 
 
-# fonction à documenter/valider
+# fonction à documenter/valider avec un if_else si 1/2 avec NA ou diff de 10 nchar()
 change_date <- function(x, variable_date){
   
   ligne_precedente <- seq(1, nrow(x), 1) - 1
   ligne_precedente[1] <- 1
   
 for (i in 1:nrow(x)) {
-  x <- x %>%
-    mutate(variable_date = if_else(
-      condition = nchar(variable_date) != 10,
-      true = variable_date[ligne_precedente],
-      false = variable_date
-    ))
+      x <- x %>%
+      mutate(variable_date = if_else(
+        condition = nchar(variable_date) != 10  | is.na(variable_date),
+        true = variable_date[ligne_precedente],
+        false = variable_date
+      ))
 }
   
   return(x)
   
 }
+
 
 
 #' function for undetermined polygones > need to add documentation
