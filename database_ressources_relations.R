@@ -32,7 +32,7 @@ heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_1/don
 # inputs : as lists
 working_directory <- getwd()
 
-#### FROM JPG TO PNG ####
+#### FROM JPG TO PNG : photos ####
 
 # specific directory
 working_directory_photo <- paste0(working_directory, "/data/photos/features_places_bulk_1/")
@@ -110,7 +110,7 @@ openxlsx::write.xlsx(tableau_des_relations_photos_feature_hp,
                      "sorties/finales/500_features_bulk_1/UCOP_relations_photos_features_places.xlsx", append = TRUE)
 
 
-#### BULK UPLOAD : PHOTOS ####
+#### BULK : PHOTOS ####
 # creation of centroids from heritage places and heritages features for each photo of entity
 relations_bulk <- relations %>%
   rename(FEATURE_ID = OS_Number) %>%
@@ -222,6 +222,90 @@ write.xlsx(list_of_datasets,
            append = TRUE)
 
 
+
+#### DATA SKETCHES ####
+
+# specific directory
+working_directory_sketch <- paste0(working_directory, "/data/sketches/features_places_bulk_1/")
+working_directory_sketch_jpeg <- list.files(path = working_directory_sketch, pattern = "jpeg$")
+# il y a aussi du .png
+working_directory_sketch_png <- list.files(path = working_directory_sketch, pattern = "png$")
+
+# vérification du nb sketches (équivalent à nb sketches dans dossier, au cas où autre format)
+length(working_directory_sketch_jpeg) + length(working_directory_sketch_png)
+
+
+#### FROM JPEG TO PNG ####
+# .jpeg
+liste_files <- list.files(path = working_directory_sketch, pattern = "jpeg$")
+
+output_files_JPEG <- gsub(".jpeg", ".png", working_directory_sketch_jpeg)
+
+
+# loop to convert every JPG file in png
+for(i in 1:length(liste_files)){
+  image_write(image_read(paste0(working_directory_sketch, liste_files[i])),
+              file.path(paste0(working_directory_sketch, "new_image/"), output_files_JPEG[i]))
+}
+
+
+#### DB AND SKETCHES RELATIONS ####
+working_directory_sketch <- paste0(working_directory, "/sorties/finales/500_features_bulk_1/sketches/")
+working_directory_sketch_png <- list.files(path = working_directory_sketch, pattern = "png$")
+
+# table des relations des sketches avec renvois
+renvois_relations_sketches <- read_excel(path = "data/sketches/sketches_gestion.xlsx", sheet = "Tableau_des_relations")
+
+# tibble of photos names
+liste_sketches <- tibble(liste_sketches_dossier = working_directory_sketch_png) %>%
+  mutate(OS_Number = str_sub(string = liste_sketches_dossier, start = 1, end = 8))
+
+
+relations <- liste_sketches %>%
+  # intégration des features qui n'ont à la base pas de sketches mais qui sont quand mm présentes sur d'autres
+  left_join(., y = renvois_relations_sketches, by = c("OS_Number" = "ID_sketch")) %>%
+  filter(!is.na(ID_OS_renvoi)) %>%
+  mutate(OS_Number = str_c(OS_Number, ID_OS_renvoi, sep = "|")) %>%
+  select(-ID_OS_renvoi) %>%
+  separate_rows(OS_Number, sep = "\\|") %>%
+  # ajout du tibble de liste
+  bind_rows(liste_sketches) %>%
+  # sélection tableau individus uniques
+  unique() %>%
+  # jointure avec les 500 features sur lesquelles on travaille
+  arrange(OS_Number) %>% # tri croissant pour meilleure visualisation personnelle
+  left_join(., y = ucop_data_500 %>%
+              mutate(dans_db = "oui"), 
+            by = "OS_Number")
+
+
+# each sketch is related to an heritage place/feature ?
+relations %>% filter(is.na(dans_db))
+
+
+# each heritage place/feature got a photo ?
+ucop_data_500 %>%
+  left_join(., y = liste_sketches, by = "OS_Number") %>%
+  group_by_at(vars(-liste_sketches_dossier)) %>%
+  filter(is.na(liste_sketches_dossier))
+
+
+# tibble of relations
+tableau_des_relations_sketches_feature_hp <- relations %>%
+  select(-`People names`:-dans_db) %>%
+  rename(RESOURCEID_FROM = liste_sketches_dossier,
+         RESOURCEID_TO = OS_Number) %>%
+  mutate(START_DATE = "x",
+         END_DATE = "x",
+         RELATION_TYPE = "Heritage Resource - Information Resource",
+         NOTES = str_c("sketch of", RESOURCEID_TO, sep = " ")) %>%
+  unique()
+
+# sortie
+tableau_des_relations_sketches_feature_hp <- list("RELATIONS" = tableau_des_relations_sketches_feature_hp)
+openxlsx::write.xlsx(tableau_des_relations_sketches_feature_hp, 
+                     "sorties/finales/500_features_bulk_1/UCOP_relations_sketches_features_places.xlsx", 
+                     append = TRUE)
 
 
 
