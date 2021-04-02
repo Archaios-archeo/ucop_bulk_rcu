@@ -274,15 +274,16 @@ sortie_ThreatGroup <- data_pivot %>%
          RISK_LEVEL.I4 = "x",
          RISK_LEVEL_CERTAINTY.I6 = "x",
          RISK_EVALUATION_ASSESSOR_NAME.E41 = "UCOP Team") %>%
+  mutate(THREAT_PROBABILITY_TYPE.E55 = case_when(
+    THREAT_PROBABILITY_TYPE.E55 == "Possible" ~ "2 - Possible",
+    THREAT_PROBABILITY_TYPE.E55 == "Probable" ~ "4 - Probable"),
+    TRUE ~ THREAT_PROBABILITY_TYPE.E55
+    ) %>%
   mutate(THREAT_TYPE.E55 = if_else(
     condition = is.na(THREAT_TYPE.E55),
     true = "Unknown",
     THREAT_TYPE.E55
-  )) %>%
-  mutate(THREAT_PROBABILITY_TYPE.E55 = str_replace_all(string = THREAT_PROBABILITY_TYPE.E55, 
-                                                       pattern = "Possible", 
-                                                       replacement = "2 - Possible")) %>%
-  # il y a 10 NA dans la base de données > assignation en "Unknown" pour être en mesure d'appliquer les fonctions suivantes
+  )) %>% # si NA dans la base de données > assignation en "Unknown" pour être en mesure d'appliquer les fonctions suivantes
   repetition_pattern_n_exact(x = ., variable_a_bon_pattern = "THREAT_TYPE.E55", 
                              variable_revue = "POTENTIAL_IMPACT_TYPE.E55") %>%
   repetition_pattern_n_exact(x = ., variable_a_bon_pattern = "THREAT_TYPE.E55", 
@@ -334,17 +335,17 @@ sortie_MeasurementGroup <- heritage_features_polygons_tibble %>%
 sortie_NOT <- sortie_NOT %>%
   select(-OVERALL_CONDITION_STATE_TYPE.E55)
 
-list_of_datasets <- list("zzAssessment" = sortie_zzAssessment[1:250,], 
-                         "NameGroup" = sortie_NameGroup[1:250,],
-                         "GeometryGroup" = sortie_GeometryGroup[1:250,],
-                         "MeasurementGroup" = sortie_MeasurementGroup[1:250,],
-                         "DescriptionGroup" = sortie_DescriptionGroup[1:250,],
-                         "FeatureFormGroup" = sortie_FeatureFormGroup[1:250,],
-                         "InterpretationGroup" = sortie_InterpretationGroup[1:250,],
-                         "AdminAreasGroup" = sortie_AdminAreasGroup[1:250,],
-                         "NOT" = sortie_NOT[1:250,],
-                         "zDisturbanceGroup" = sortie_zDisturbanceGroup[1:250,],
-                         "ThreatGroup" = sortie_ThreatGroup[1:250,])
+list_of_datasets <- list("zzAssessment" = sortie_zzAssessment, 
+                         "NameGroup" = sortie_NameGroup,
+                         "GeometryGroup" = sortie_GeometryGroup,
+                         "MeasurementGroup" = sortie_MeasurementGroup,
+                         "DescriptionGroup" = sortie_DescriptionGroup,
+                         "FeatureFormGroup" = sortie_FeatureFormGroup,
+                         "InterpretationGroup" = sortie_InterpretationGroup,
+                         "AdminAreasGroup" = sortie_AdminAreasGroup,
+                         "NOT" = sortie_NOT,
+                         "zDisturbanceGroup" = sortie_zDisturbanceGroup,
+                         "ThreatGroup" = sortie_ThreatGroup)
 
 write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_2/UCOP_heritage_features_bulk.xlsx", append = TRUE)
 
