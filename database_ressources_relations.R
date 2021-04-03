@@ -227,7 +227,7 @@ list_of_datasets <- list("ImageDetails" = sortie_ImageDetails,
                          "ImageGroup" = sortie_ImageGroup)
 
 write.xlsx(list_of_datasets, 
-           file = "sorties/finales/500_features_bulk_1/UCOP_ressources_photos.xlsx", 
+           file = "sorties/finales/500_features_bulk_2/UCOP_ressources_photos.xlsx", 
            append = TRUE)
 
 
