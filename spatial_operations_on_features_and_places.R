@@ -12,19 +12,22 @@ source("bulk_functions.R")
 
 #### DATA SOURCES ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
+ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v4.xlsx")
 
 # dernière MAJ des données SIG, envoyées par GG (au 18/03/2021)
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
-                       stringsAsFactors = FALSE)
+                       stringsAsFactors = FALSE) %>%
+  st_transform(crs = 32637)
 
 # dernière MAJ des données ponctuelles SIG, envoyées par VB (au 19/03/2021)
 donnees_sig_points <- st_read(dsn = "data/2021_01_features_general/feature_point.shp", 
-                              stringsAsFactors = FALSE)
+                              stringsAsFactors = FALSE) %>%
+  st_transform(crs = 32637)
 
 # dernière MAJ des données linéaires SIG, VB (au 19/03/2021)
 donnees_sig_lines <- st_read(dsn = "data/2021_01_features_general/feature_line.shp", 
-                              stringsAsFactors = FALSE)
+                              stringsAsFactors = FALSE) %>%
+  st_transform(crs = 32637)
 
 
 
@@ -182,8 +185,8 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(501:1000) %>%
-  bind_rows(ucop_data_2019_2020_1 %>% filter(OS_Number == "OS_00007")) %>%
+  slice(1001:1500) %>%
+  # bind_rows(ucop_data_2019_2020_1 %>% filter(OS_Number == "OS_00007")) %>%
   arrange(OS_Number)
 
 
@@ -240,10 +243,11 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_2/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_3/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_2/intersect_indetermines_sides_jg.gpkg")
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_3/intersect_indetermines_sides_jg.gpkg") %>%
+  st_transform(crs = 32637)
 
 
 ### heritage features : spatial data ###
@@ -266,6 +270,11 @@ donnees_sig_revues_500 <- donnees_sig %>%
   ungroup()
 
 tm_shape(donnees_sig_revues_500) + tm_polygons()
+# problème de validité d'un polygone : il s'agit d'une OS complexe (un plot)
+donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
+  st_make_valid(.)
+
+tm_shape(donnees_sig_revues_500) + tm_polygons()
 
 # contient des empty units ?
 any(is.na(st_dimension(donnees_sig_revues_500)))
@@ -281,7 +290,7 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   filter(pas_de_geom == FALSE) %>%
   select(-pas_de_geom)
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_3/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 
@@ -293,7 +302,7 @@ donnees_sig_points <- donnees_sig_points %>%
   filter(ucop_500 == "oui") %>%
   select(FEATURE_ID)
 
-st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_3/donnees_spatiales_features.gpkg", 
          layer = "points", append=TRUE)
 
 
@@ -308,7 +317,7 @@ donnees_sig_lines <- donnees_sig_lines %>%
   # si non, transformer en réel multilinestring car cela a du sens
   st_cast(., "LINESTRING")
 
-st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_2/donnees_spatiales_features.gpkg",
+st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_3/donnees_spatiales_features.gpkg",
          layer = "lines", append=TRUE)
 
 
