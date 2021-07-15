@@ -222,7 +222,7 @@ sortie_NOT <- data_pivot %>%
   mutate(OVERALL_CONDITION_STATE_TYPE.E55 = case_when(
     OVERALL_CONDITION_STATE_TYPE.E55 == "Good" ~ "Intact/No Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Excellent" ~ "Intact/No Damage",
-    OVERALL_CONDITION_STATE_TYPE.E55 == "Fair" ~ "Slighty Damage",
+    OVERALL_CONDITION_STATE_TYPE.E55 == "Fair" ~ "Slight Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Poor" ~ "Moderate Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Very Bad" ~ "Severe Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Unknown" ~ "No Visible/Accessible/Known",
@@ -310,7 +310,8 @@ sortie_ThreatGroup <- data_pivot %>%
                                                                    "Probable" = "4 - Probable",
                                                                    "Unlikely" = "1 - Unlikely",
                                                                    "Likely" = "3 - Likely",
-                                                                   "Certain" = "5 - Certain")))
+                                                                   "Certain" = "5 - Certain"))) %>%
+  select(-VULNERABILITY_TYPE.E55) # en fait, n'existe pas pour les heritage features
 
 
 # GeometryGroup : feuille demandée par la RCU
@@ -543,7 +544,7 @@ sortie_NOT <- data_pivot %>%
   mutate(OVERALL_CONDITION_STATE_TYPE.E55 = case_when(
     OVERALL_CONDITION_STATE_TYPE.E55 == "Good" ~ "Intact/No Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Excellent" ~ "Intact/No Damage",
-    OVERALL_CONDITION_STATE_TYPE.E55 == "Fair" ~ "Slighty Damage",
+    OVERALL_CONDITION_STATE_TYPE.E55 == "Fair" ~ "Slight Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Poor" ~ "Moderate Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Very Bad" ~ "Severe Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Unknown" ~ "No Visible/Accessible/Known",
@@ -632,7 +633,8 @@ sortie_ThreatGroup <- data_pivot %>%
                                                                    "Probable" = "4 - Probable",
                                                                    "Unlikely" = "1 - Unlikely",
                                                                    "Likely" = "3 - Likely",
-                                                                   "Certain" = "5 - Certain")))
+                                                                   "Certain" = "5 - Certain"))) %>%
+  select(-VULNERABILITY_TYPE.E55)
 
 
 # GeometryGroup : feuille demandée par la RCU
@@ -867,7 +869,7 @@ sortie_NOT <- data_pivot %>%
   mutate(OVERALL_CONDITION_STATE_TYPE.E55 = case_when(
     OVERALL_CONDITION_STATE_TYPE.E55 == "Good" ~ "Intact/No Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Excellent" ~ "Intact/No Damage",
-    OVERALL_CONDITION_STATE_TYPE.E55 == "Fair" ~ "Slighty Damage",
+    OVERALL_CONDITION_STATE_TYPE.E55 == "Fair" ~ "Slight Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Poor" ~ "Moderate Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Very Bad" ~ "Severe Damage",
     OVERALL_CONDITION_STATE_TYPE.E55 == "Unknown" ~ "No Visible/Accessible/Known",
@@ -956,7 +958,8 @@ sortie_ThreatGroup <- data_pivot %>%
                                                                    "Probable" = "4 - Probable",
                                                                    "Unlikely" = "1 - Unlikely",
                                                                    "Likely" = "3 - Likely",
-                                                                   "Certain" = "5 - Certain")))
+                                                                   "Certain" = "5 - Certain"))) %>%
+  select(-VULNERABILITY_TYPE.E55)
 
 
 # GeometryGroup : feuille demandée par la RCU
