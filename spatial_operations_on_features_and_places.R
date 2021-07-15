@@ -186,7 +186,6 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
   slice(1001:1500) %>%
-  # bind_rows(ucop_data_2019_2020_1 %>% filter(OS_Number == "OS_00007")) %>%
   arrange(OS_Number)
 
 
@@ -249,7 +248,6 @@ st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_3/inter
 relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_3/intersect_indetermines_sides_jg.gpkg") %>%
   st_transform(crs = 32637)
 
-
 ### heritage features : spatial data ###
 donnees_sig_revues_500 <- donnees_sig %>%
   # sélection des 500 heritage features non recomposées
@@ -261,7 +259,8 @@ donnees_sig_revues_500 <- donnees_sig %>%
   filter(TYPE %ni% c("Undetermined", "Undetermi*")) %>%
   select(FEATURE_ID) %>%
   # ajout dans le tableau des murs and co. intégrant les polygones "relations indéterminées"
-  bind_rows(relation_revues %>% select(FEATURE_ID)) %>% # sélection seulement des identifiant
+  bind_rows(relation_revues %>% select(FEATURE_ID) %>% # sélection seulement des identifiants
+              rename(geometry = geom)) %>% # il a planté... la geometry s'est transformé en geom avec la transfo gpkg
   # ajout dans le tableau des murs and co. qui ne sont pas liés à des polygones "relations indéterminées"
   bind_rows(murs_et_batis_summarise) %>%
   # virer les "doublons" en faisant un summarise pour unir les polygones selon l'ID
@@ -289,6 +288,15 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   mutate(pas_de_geom = is.na(st_dimension(donnees_sig_revues_500))) %>%
   filter(pas_de_geom == FALSE) %>%
   select(-pas_de_geom)
+
+
+# il ne faut pas que les qanats (partie donut et parte cratere soient fusionnées), donc : est-ce qu'il y en a ?
+donnees_sig_revues_500 %>% 
+  left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number")) %>% 
+  select(FEATURE_ID, `Feature form`) %>% 
+  mutate(qanat = str_detect(string = `Feature form`, pattern = "Shaft")) %>% 
+  filter(qanat == TRUE)
+
 
 st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_3/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
