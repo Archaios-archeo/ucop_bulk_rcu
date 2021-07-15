@@ -13,23 +13,21 @@ source("bulk_functions.R")
 ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v4.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(1001:1500) %>%
+  slice(1501:2000) %>%
   arrange(OS_Number)
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_3/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_4/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
-heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_3/donnees_spatiales_features_jg.gpkg", layer = "lines")
+heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_4/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
-heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_3/donnees_spatiales_features_jg.gpkg", layer = "points")
+heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_4/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
 # il y a les "alternatives references", à savoir les V_ (via blabla) et P_ (pur plots blabla) qu'il faut reprendre et intégrer
 # dans les pour des questions de traçabilité de nos données
 correspondances_via_plot_os <- read_excel(path = "data/correspondances_os_plot_via.xlsx")
-
-
 
 #### POLYGONS PROCESS ####
 heritage_features_polygons_tibble <- heritage_features_polygons_gis %>%
@@ -108,7 +106,16 @@ sortie_NameGroup <- data_pivot %>%
   filter(rcu_onglet == "NameGroup") %>%
   pivot_wider(data = ., id_cols = ID, names_from = rcu_field_name, values_from = valeurs_ucop_origine) %>%
   select(-ID) %>%
-  mutate(NAME_TYPE.E55 = "Alternative Reference")
+  mutate(NAME_TYPE.E55 = "Alternative Reference") %>%
+  left_join(., y = correspondances_via_plot_os, by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(NAME.E41 = case_when(
+    !is.na(Old_Number) ~ paste0(NAME.E41, "|", Old_Number),
+    TRUE ~ NAME.E41
+  )) %>%
+  select(-Old_Number) %>%
+  repetition_pattern_n_exact(x = ., 
+                             variable_a_bon_pattern = "NAME.E41", 
+                             variable_revue = "NAME_TYPE.E55")
 
 
 # DescriptionGroup : feuille demandée par la RCU
@@ -228,7 +235,8 @@ sortie_NOT <- data_pivot %>%
     OVERALL_CONDITION_STATE_TYPE.E55 == "Unknown" ~ "No Visible/Accessible/Known",
     OVERALL_CONDITION_STATE_TYPE.E55 %in% c("n.a.", "na", "n.a", "na.", "NA") ~ "x",
     TRUE ~ OVERALL_CONDITION_STATE_TYPE.E55
-  ))
+  )) %>%
+  rename(OVERALL_DAMAGE_SEVERITY_TYPE.E55 = OVERALL_CONDITION_STATE_TYPE.E55)
 
 
 # zDisturbanceGroup : feuille demandée par la RCU
@@ -354,7 +362,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_3/UCOP_heritage_features_bulk.xlsx", append = TRUE)
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_4/UCOP_heritage_features_bulk.xlsx")
 
 rm(heritage_features_polygons_gis, heritage_features_polygons_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
    sortie_DescriptionGroup, sortie_FeatureFormGroup, sortie_GeometryGroup, sortie_InterpretationGroup,
@@ -430,7 +438,16 @@ sortie_NameGroup <- data_pivot %>%
   filter(rcu_onglet == "NameGroup") %>%
   pivot_wider(data = ., id_cols = ID, names_from = rcu_field_name, values_from = valeurs_ucop_origine) %>%
   select(-ID) %>%
-  mutate(NAME_TYPE.E55 = "Alternative Reference")
+  mutate(NAME_TYPE.E55 = "Alternative Reference") %>%
+  left_join(., y = correspondances_via_plot_os, by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(NAME.E41 = case_when(
+    !is.na(Old_Number) ~ paste0(NAME.E41, "|", Old_Number),
+    TRUE ~ NAME.E41
+  )) %>%
+  select(-Old_Number) %>%
+  repetition_pattern_n_exact(x = ., 
+                             variable_a_bon_pattern = "NAME.E41", 
+                             variable_revue = "NAME_TYPE.E55")
 
 
 # DescriptionGroup : feuille demandée par la RCU
@@ -550,7 +567,8 @@ sortie_NOT <- data_pivot %>%
     OVERALL_CONDITION_STATE_TYPE.E55 == "Unknown" ~ "No Visible/Accessible/Known",
     OVERALL_CONDITION_STATE_TYPE.E55 %in% c("n.a.", "na", "n.a", "na.", "NA") ~ "x",
     TRUE ~ OVERALL_CONDITION_STATE_TYPE.E55
-  ))
+  )) %>%
+  rename(OVERALL_DAMAGE_SEVERITY_TYPE.E55 = OVERALL_CONDITION_STATE_TYPE.E55)
 
 
 
@@ -678,7 +696,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_3/UCOP_heritage_features_bulk_lines.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_4/UCOP_heritage_features_bulk_lines.xlsx")
 
 
 rm(heritage_features_lines_gis, heritage_features_lines_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
@@ -755,7 +773,16 @@ sortie_NameGroup <- data_pivot %>%
   filter(rcu_onglet == "NameGroup") %>%
   pivot_wider(data = ., id_cols = ID, names_from = rcu_field_name, values_from = valeurs_ucop_origine) %>%
   select(-ID) %>%
-  mutate(NAME_TYPE.E55 = "Alternative Reference")
+  mutate(NAME_TYPE.E55 = "Alternative Reference") %>%
+  left_join(., y = correspondances_via_plot_os, by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(NAME.E41 = case_when(
+    !is.na(Old_Number) ~ paste0(NAME.E41, "|", Old_Number),
+    TRUE ~ NAME.E41
+  )) %>%
+  select(-Old_Number) %>%
+  repetition_pattern_n_exact(x = ., 
+                             variable_a_bon_pattern = "NAME.E41", 
+                             variable_revue = "NAME_TYPE.E55")
 
 
 # DescriptionGroup : feuille demandée par la RCU
@@ -875,7 +902,8 @@ sortie_NOT <- data_pivot %>%
     OVERALL_CONDITION_STATE_TYPE.E55 == "Unknown" ~ "No Visible/Accessible/Known",
     OVERALL_CONDITION_STATE_TYPE.E55 %in% c("n.a.", "na", "n.a", "na.", "NA") ~ "x",
     TRUE ~ OVERALL_CONDITION_STATE_TYPE.E55
-  ))
+  )) %>%
+  rename(OVERALL_DAMAGE_SEVERITY_TYPE.E55 = OVERALL_CONDITION_STATE_TYPE.E55)
 
 
 
@@ -972,7 +1000,7 @@ sortie_GeometryGroup <- heritage_features_points_gis %>%
   relocate(LOCATION_CERTAINTY.I6, .before = GEOMETRIC_PLACE_EXPRESSION.SP5)
 
 # verification
-tm_shape(st_as_sf(st_as_sfc(sortie_GeometryGroup$GEOMETRIC_PLACE_EXPRESSION.SP5))) + tm_lines()
+tm_shape(st_as_sf(st_as_sfc(sortie_GeometryGroup$GEOMETRIC_PLACE_EXPRESSION.SP5))) + tm_dots()
 
 
 # MeasurementGroup : feuille demandée par la RCU
@@ -1001,6 +1029,6 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_3/UCOP_heritage_features_bulk_points.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_4/UCOP_heritage_features_bulk_points.xlsx")
 
 
