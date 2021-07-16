@@ -185,7 +185,7 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(1501:2000) %>%
+  slice(2001:2500) %>%
   arrange(OS_Number)
 
 
@@ -242,10 +242,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_4/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_5/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_4/intersect_indetermines_sides_jg.gpkg") %>%
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_5/intersect_indetermines_sides_jg.gpkg") %>%
   st_transform(crs = 32637)
 
 ### heritage features : spatial data ###
@@ -298,7 +298,7 @@ donnees_sig_revues_500 %>%
   filter(qanat == TRUE)
 
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_4/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_5/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 
@@ -310,7 +310,7 @@ donnees_sig_points <- donnees_sig_points %>%
   filter(ucop_500 == "oui") %>%
   select(FEATURE_ID)
 
-st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_4/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_5/donnees_spatiales_features.gpkg", 
          layer = "points", append=TRUE)
 
 
@@ -325,7 +325,7 @@ donnees_sig_lines <- donnees_sig_lines %>%
   # si non, transformer en réel multilinestring car cela a du sens
   st_cast(., "LINESTRING")
 
-st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_4/donnees_spatiales_features.gpkg",
+st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_5/donnees_spatiales_features.gpkg",
          layer = "lines", append=TRUE)
 
 
