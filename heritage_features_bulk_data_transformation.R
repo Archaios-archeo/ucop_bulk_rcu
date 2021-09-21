@@ -10,19 +10,19 @@ source("bulk_functions.R")
 
 #### DATA SOURCES ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v4.xlsx")
+ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(1501:2000) %>%
+  slice(2001:2500) %>%
   arrange(OS_Number)
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_4/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_5/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
-heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_4/donnees_spatiales_features_jg.gpkg", layer = "lines")
+heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_5/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
-heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_4/donnees_spatiales_features_jg.gpkg", layer = "points")
+heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_5/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
 # il y a les "alternatives references", à savoir les V_ (via blabla) et P_ (pur plots blabla) qu'il faut reprendre et intégrer
@@ -76,8 +76,8 @@ sortie_zzAssessment <- data_pivot %>%
   # projet Archaios au sein d'IDIHA
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "UCOP Team", sep = "|")) %>% 
   # ajout systématique du nom du projet
-  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "IDIHA Project/RCU Staff") %>%
-  # création de la colonne investigator qui est lié à un "pattern" systématique
+  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "UCOP Project") %>%
+  # création de la colonne investigator qui est lié à un "pattern" systématique > (ajout LM en septembre 2021)
   repetition_pattern_n_exact(x = ., 
                              variable_a_bon_pattern = "INVESTIGATOR_NAME.E41", 
                              variable_revue = "INVESTIGATOR_ROLE_TYPE.E55") %>%
@@ -96,7 +96,7 @@ sortie_zzAssessment <- data_pivot %>%
   # application fonction de répétition des informations
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "Julie Gravier", sep = "|"),
          # ajout systématique obligatoire de mon propre nom en tant que travail de desk-based, à la date du code, et en tant que membre IDIHA
-         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "IDIHA Project/RCU Staff", sep = "|"),
+         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "UCOP Project", sep = "|"),
          ASSESSMENT_ACTIVITY_TYPE.E55 = str_c(ASSESSMENT_ACTIVITY_TYPE.E55, "Desk-based (Unspecified)", sep = "|"),
          ASSESSMENT_ACTIVITY_DATE.E49 = str_c(ASSESSMENT_ACTIVITY_DATE.E49, Sys.Date(), sep = "|"))
 
@@ -203,7 +203,15 @@ sortie_InterpretationGroup <- data_pivot %>%
       "ARCHAEOLOGICAL_FROM_DATE.E61", "ARCHAEOLOGICAL_TO_DATE.E61", "FUNCTION_TYPE.I4",
       "FUNCTION_CERTAINTY.I6", "INTERPRETATION_TYPE.I4", "INTERPRETATION_CERTAINTY.I6",
       "DATE_INTERPRETATION_INFERENCE_MAKING_ACTOR_NAME.E41")
-  ))
+  )) %>%
+  # ajout d'une transformation pour que les patterns temporels soient cohérents avec les patterns fonctionnels
+  mutate(CULTURAL_PERIOD_TYPE.I4 = if_else(
+    condition = CULTURAL_PERIOD_TYPE.I4 == "Modern|Islamic|Modern|Islamic",
+    true = "Modern|Modern|Islamic|Islamic",
+    false = CULTURAL_PERIOD_TYPE.I4)) %>%
+  mutate(CULTURAL_PERIOD_DETAIL_TYPE.E55 = if_else(CULTURAL_PERIOD_DETAIL_TYPE.E55 == "Unknown|Late Ottoman|Unknown|Late Ottoman",
+    true = "Unknown|Unknown|Late Ottoman|Late Ottoman",
+    false = CULTURAL_PERIOD_DETAIL_TYPE.E55))
 
 
 # AdminAreasGroup : feuille demandée par la RCU
@@ -236,7 +244,8 @@ sortie_NOT <- data_pivot %>%
     OVERALL_CONDITION_STATE_TYPE.E55 %in% c("n.a.", "na", "n.a", "na.", "NA") ~ "x",
     TRUE ~ OVERALL_CONDITION_STATE_TYPE.E55
   )) %>%
-  rename(OVERALL_DAMAGE_SEVERITY_TYPE.E55 = OVERALL_CONDITION_STATE_TYPE.E55)
+  rename(OVERALL_DAMAGE_SEVERITY_TYPE.E55 = OVERALL_CONDITION_STATE_TYPE.E55) %>%
+  mutate(GRID_ID.E42 = if_else(is.na(GRID_ID.E42), "x", GRID_ID.E42))
 
 
 # zDisturbanceGroup : feuille demandée par la RCU
@@ -332,7 +341,7 @@ sortie_GeometryGroup <- heritage_features_polygons_gis %>%
   relocate(LOCATION_CERTAINTY.I6, .before = GEOMETRIC_PLACE_EXPRESSION.SP5)
 
 # verification
-tm_shape(st_as_sf(st_as_sfc(sortie_GeometryGroup$GEOMETRIC_PLACE_EXPRESSION.SP5))) + tm_polygons()
+tm_shape(st_as_sf(st_as_sfc(sortie_GeometryGroup$GEOMETRIC_PLACE_EXPRESSION.SP5))) + tm_polygons() + tmap_options(check.and.fix = TRUE)
 
 
 # MeasurementGroup : feuille demandée par la RCU
@@ -362,7 +371,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_4/UCOP_heritage_features_bulk.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_5/UCOP_heritage_features_bulk.xlsx")
 
 rm(heritage_features_polygons_gis, heritage_features_polygons_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
    sortie_DescriptionGroup, sortie_FeatureFormGroup, sortie_GeometryGroup, sortie_InterpretationGroup,
@@ -408,7 +417,7 @@ sortie_zzAssessment <- data_pivot %>%
   # projet Archaios au sein d'IDIHA
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "UCOP Team", sep = "|")) %>% 
   # ajout systématique du nom du projet
-  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "IDIHA Project/RCU Staff") %>%
+  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "UCOP Project") %>%
   # création de la colonne investigator qui est lié à un "pattern" systématique
   repetition_pattern_n_exact(x = ., 
                              variable_a_bon_pattern = "INVESTIGATOR_NAME.E41", 
@@ -428,7 +437,7 @@ sortie_zzAssessment <- data_pivot %>%
   # application fonction de répétition des informations
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "Julie Gravier", sep = "|"),
          # ajout systématique obligatoire de mon propre nom en tant que travail de desk-based, à la date du code, et en tant que membre IDIHA
-         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "IDIHA Project/RCU Staff", sep = "|"),
+         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "UCOP Project", sep = "|"),
          ASSESSMENT_ACTIVITY_TYPE.E55 = str_c(ASSESSMENT_ACTIVITY_TYPE.E55, "Desk-based (Unspecified)", sep = "|"),
          ASSESSMENT_ACTIVITY_DATE.E49 = str_c(ASSESSMENT_ACTIVITY_DATE.E49, Sys.Date(), sep = "|"))
 
@@ -535,7 +544,14 @@ sortie_InterpretationGroup <- data_pivot %>%
       "ARCHAEOLOGICAL_FROM_DATE.E61", "ARCHAEOLOGICAL_TO_DATE.E61", "FUNCTION_TYPE.I4",
       "FUNCTION_CERTAINTY.I6", "INTERPRETATION_TYPE.I4", "INTERPRETATION_CERTAINTY.I6",
       "DATE_INTERPRETATION_INFERENCE_MAKING_ACTOR_NAME.E41")
-  ))
+  )) %>%
+  mutate(CULTURAL_PERIOD_TYPE.I4 = if_else(
+    condition = CULTURAL_PERIOD_TYPE.I4 == "Modern|Islamic|Modern|Islamic",
+    true = "Modern|Modern|Islamic|Islamic",
+    false = CULTURAL_PERIOD_TYPE.I4)) %>%
+  mutate(CULTURAL_PERIOD_DETAIL_TYPE.E55 = if_else(CULTURAL_PERIOD_DETAIL_TYPE.E55 == "Unknown|Late Ottoman|Unknown|Late Ottoman",
+                                                   true = "Unknown|Unknown|Late Ottoman|Late Ottoman",
+                                                   false = CULTURAL_PERIOD_DETAIL_TYPE.E55))
 
 
 # AdminAreasGroup : feuille demandée par la RCU
@@ -743,7 +759,7 @@ sortie_zzAssessment <- data_pivot %>%
   # projet Archaios au sein d'IDIHA
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "UCOP Team", sep = "|")) %>% 
   # ajout systématique du nom du projet
-  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "IDIHA Project/RCU Staff") %>%
+  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "UCOP Project") %>%
   # création de la colonne investigator qui est lié à un "pattern" systématique
   repetition_pattern_n_exact(x = ., 
                              variable_a_bon_pattern = "INVESTIGATOR_NAME.E41", 
@@ -763,7 +779,7 @@ sortie_zzAssessment <- data_pivot %>%
   # application fonction de répétition des informations
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "Julie Gravier", sep = "|"),
          # ajout systématique obligatoire de mon propre nom en tant que travail de desk-based, à la date du code, et en tant que membre IDIHA
-         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "IDIHA Project/RCU Staff", sep = "|"),
+         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "UCOP Project", sep = "|"),
          ASSESSMENT_ACTIVITY_TYPE.E55 = str_c(ASSESSMENT_ACTIVITY_TYPE.E55, "Desk-based (Unspecified)", sep = "|"),
          ASSESSMENT_ACTIVITY_DATE.E49 = str_c(ASSESSMENT_ACTIVITY_DATE.E49, Sys.Date(), sep = "|"))
 
@@ -870,7 +886,14 @@ sortie_InterpretationGroup <- data_pivot %>%
       "ARCHAEOLOGICAL_FROM_DATE.E61", "ARCHAEOLOGICAL_TO_DATE.E61", "FUNCTION_TYPE.I4",
       "FUNCTION_CERTAINTY.I6", "INTERPRETATION_TYPE.I4", "INTERPRETATION_CERTAINTY.I6",
       "DATE_INTERPRETATION_INFERENCE_MAKING_ACTOR_NAME.E41")
-  ))
+  )) %>%
+  mutate(CULTURAL_PERIOD_TYPE.I4 = if_else(
+    condition = CULTURAL_PERIOD_TYPE.I4 == "Modern|Islamic|Modern|Islamic",
+    true = "Modern|Modern|Islamic|Islamic",
+    false = CULTURAL_PERIOD_TYPE.I4)) %>%
+  mutate(CULTURAL_PERIOD_DETAIL_TYPE.E55 = if_else(CULTURAL_PERIOD_DETAIL_TYPE.E55 == "Unknown|Late Ottoman|Unknown|Late Ottoman",
+                                                   true = "Unknown|Unknown|Late Ottoman|Late Ottoman",
+                                                   false = CULTURAL_PERIOD_DETAIL_TYPE.E55))
 
 
 # AdminAreasGroup : feuille demandée par la RCU
@@ -1029,6 +1052,6 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_4/UCOP_heritage_features_bulk_points.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_5/UCOP_heritage_features_bulk_points.xlsx")
 
 
