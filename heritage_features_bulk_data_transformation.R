@@ -13,16 +13,16 @@ source("bulk_functions.R")
 ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(2501:3000) %>%
+  slice(3001:3500) %>%
   arrange(OS_Number)
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
 heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
-heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "points")
+heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
 # il y a les "alternatives references", à savoir les V_ (via blabla) et P_ (pur plots blabla) qu'il faut reprendre et intégrer
@@ -129,7 +129,14 @@ sortie_DescriptionGroup <- data_pivot %>%
     is.na(GENERAL_DESCRIPTION.E62),
     "x",
     GENERAL_DESCRIPTION.E62
-  ))
+  )) %>%
+  bind_cols(sortie_NameGroup) %>%
+  left_join(., y = ucop_data_500 %>%
+              select(OS_Number, `Feature significance RCU`), 
+            by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(GENERAL_DESCRIPTION_TYPE.E55 = paste0(GENERAL_DESCRIPTION_TYPE.E55, "|", "Summary of Significance")) %>%
+  mutate(GENERAL_DESCRIPTION.E62 = paste0(GENERAL_DESCRIPTION.E62, "|", `Feature significance RCU`)) %>%
+  select(GENERAL_DESCRIPTION_TYPE.E55, GENERAL_DESCRIPTION.E62)
 
 
 # FeatureFormGroup : feuille demandée par la RCU
@@ -376,7 +383,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_6/UCOP_heritage_features_bulk.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_7/UCOP_heritage_features_bulk.xlsx")
 
 rm(heritage_features_polygons_gis, heritage_features_polygons_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
    sortie_DescriptionGroup, sortie_FeatureFormGroup, sortie_GeometryGroup, sortie_InterpretationGroup,
@@ -475,7 +482,14 @@ sortie_DescriptionGroup <- data_pivot %>%
     is.na(GENERAL_DESCRIPTION.E62),
     "x",
     GENERAL_DESCRIPTION.E62
-  ))
+  )) %>%
+  bind_cols(sortie_NameGroup) %>%
+  left_join(., y = ucop_data_500 %>%
+              select(OS_Number, `Feature significance RCU`), 
+            by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(GENERAL_DESCRIPTION_TYPE.E55 = paste0(GENERAL_DESCRIPTION_TYPE.E55, "|", "Summary of Significance")) %>%
+  mutate(GENERAL_DESCRIPTION.E62 = paste0(GENERAL_DESCRIPTION.E62, "|", `Feature significance RCU`)) %>%
+  select(GENERAL_DESCRIPTION_TYPE.E55, GENERAL_DESCRIPTION.E62)
 
 
 # FeatureFormGroup : feuille demandée par la RCU
@@ -595,6 +609,11 @@ sortie_NOT <- data_pivot %>%
 
 # zDisturbanceGroup : feuille demandée par la RCU
 sortie_zDisturbanceGroup <- data_pivot %>%
+  mutate(valeurs_ucop_origine = if_else(
+    condition = valeurs_ucop_origine == "Erosion / Deterioration",
+    true = "Erosion/Deterioration",
+    false = valeurs_ucop_origine
+  )) %>%
   filter(rcu_onglet == "zDisturbanceGroup") %>%
   pivot_wider(data = ., id_cols = ID, names_from = rcu_field_name, values_from = valeurs_ucop_origine) %>%
   select(-ID) %>%
@@ -817,7 +836,14 @@ sortie_DescriptionGroup <- data_pivot %>%
     is.na(GENERAL_DESCRIPTION.E62),
     "x",
     GENERAL_DESCRIPTION.E62
-  ))
+  )) %>%
+  bind_cols(sortie_NameGroup) %>%
+  left_join(., y = ucop_data_500 %>%
+              select(OS_Number, `Feature significance RCU`), 
+            by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(GENERAL_DESCRIPTION_TYPE.E55 = paste0(GENERAL_DESCRIPTION_TYPE.E55, "|", "Summary of Significance")) %>%
+  mutate(GENERAL_DESCRIPTION.E62 = paste0(GENERAL_DESCRIPTION.E62, "|", `Feature significance RCU`)) %>%
+  select(GENERAL_DESCRIPTION_TYPE.E55, GENERAL_DESCRIPTION.E62)
 
 
 # FeatureFormGroup : feuille demandée par la RCU
@@ -937,6 +963,11 @@ sortie_NOT <- data_pivot %>%
 
 # zDisturbanceGroup : feuille demandée par la RCU
 sortie_zDisturbanceGroup <- data_pivot %>%
+  mutate(valeurs_ucop_origine = if_else(
+    condition = valeurs_ucop_origine == "Erosion / Deterioration",
+    true = "Erosion/Deterioration",
+    false = valeurs_ucop_origine
+  )) %>%
   filter(rcu_onglet == "zDisturbanceGroup") %>%
   pivot_wider(data = ., id_cols = ID, names_from = rcu_field_name, values_from = valeurs_ucop_origine) %>%
   select(-ID) %>%
@@ -1057,6 +1088,6 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_5/UCOP_heritage_features_bulk_points.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_7/UCOP_heritage_features_bulk_points.xlsx")
 
 

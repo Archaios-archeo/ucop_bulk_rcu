@@ -17,17 +17,17 @@ ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
   select(OS_Number, `People names`, `Feature form`, featInterpretationType, featFunctionType, `Description date`) %>%
-  slice(2501:3000) %>%
+  slice(3001:3500) %>%
   arrange(OS_Number)
 
 # spatial data for spatial coordinates
 heritage_place_gis <- st_read("sorties/finales/2019/heritage_places_2019.gpkg")
 
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
 heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
-heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "points")
+heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
 # inputs : as lists
@@ -67,7 +67,7 @@ for(i in 1:length(liste_files)){
 
 
 #### DB AND PHOTOS RELATIONS ####
-working_directory_photo <- paste0(working_directory, "/sorties/finales/500_features_bulk_6/photos/")
+working_directory_photo <- paste0(working_directory, "/sorties/finales/500_features_bulk_7/photos/")
 working_directory_photo_png <- list.files(path = working_directory_photo, pattern = "png$")
 
 
@@ -107,7 +107,7 @@ tableau_des_relations_photos_feature_hp <- relations %>%
 # sortie
 tableau_des_relations_photos_feature_hp <- list("RELATIONS" = tableau_des_relations_photos_feature_hp)
 openxlsx::write.xlsx(tableau_des_relations_photos_feature_hp, 
-                     "sorties/finales/500_features_bulk_6/UCOP_relations_photos_features_places.xlsx")
+                     "sorties/finales/500_features_bulk_7/UCOP_relations_photos_features_places.xlsx")
 
 
 #### BULK : PHOTOS ####
@@ -143,15 +143,15 @@ relations_bulk <- relations %>%
   #                         st_drop_geometry(),
   #                       by = "FEATURE_ID")
   # ) %>%
-  # bind_rows(relations %>%
-  #             rename(FEATURE_ID = OS_Number) %>%
-  #             left_join(., y = heritage_features_points_gis %>%
-  #                         st_transform(x = ., crs = 4326) %>%
-  #                         filter(FEATURE_ID != "OS_01992") %>%
-  #                         mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
-  #                         st_drop_geometry(),
-  #                       by = "FEATURE_ID")
-  # ) %>%
+  bind_rows(relations %>%
+              rename(FEATURE_ID = OS_Number) %>%
+              left_join(., y = heritage_features_points_gis %>%
+                          st_transform(x = ., crs = 4326) %>%
+                          filter(FEATURE_ID != "OS_01992") %>%
+                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+                          st_drop_geometry(),
+                        by = "FEATURE_ID")
+  ) %>%
   filter(!is.na(SPATIAL_COORDINATES_GEOMETRY.E47)) %>%
   arrange(FEATURE_ID) %>%
   unique()
@@ -177,11 +177,16 @@ sortie_NOT <- relations_bulk %>%
          IMAGERY_SAMPLED_RESOLUTION_TYPE.E55 = "Other/Unlisted",
          PROCESSING_TYPE.E55 = "Resized",
          IMAGERY_DATE_OF_PUBLICATION.E50 = as.character(Sys.Date()),
-         RIGHT_TYPE.E55 = "Copyright (All Rights Reserved)",
-         DESCRIPTION.E62 = "x") %>%
+         RIGHT_TYPE.E55 = "Copyright (All Rights Reserved)") %>%
   relocate(CATALOGUE_ID.E42, .after = INFORMATION_CARRIER_FORMAT_TYPE.E55) %>%
   relocate(DATE_OF_ACQUISITION.E50, .before = IMAGERY_DATE_OF_PUBLICATION.E50) %>%
-  relocate(SPATIAL_COORDINATES_GEOMETRY.E47, .after = RIGHT_TYPE.E55)
+  relocate(SPATIAL_COORDINATES_GEOMETRY.E47, .after = RIGHT_TYPE.E55) %>%
+  mutate(OS_Number = str_sub(string = CATALOGUE_ID.E42, start = 1, end = 8)) %>%
+  left_join(., y = ucop_data_500 %>%
+              select(OS_Number, `Feature form`, featInterpretationType),
+            by = "OS_Number") %>%
+  mutate(DESCRIPTION.E62 = paste0("photo of a ", str_to_lower(`Feature form`), ": ", str_to_lower(featInterpretationType))) %>%
+  select(-OS_Number:-featInterpretationType)
 
 
 
@@ -224,7 +229,7 @@ list_of_datasets <- list("ImageDetails" = sortie_ImageDetails,
                          "ImageGroup" = sortie_ImageGroup)
 
 openxlsx::write.xlsx(list_of_datasets, 
-           file = "sorties/finales/500_features_bulk_6/UCOP_ressources_photos.xlsx")
+           file = "sorties/finales/500_features_bulk_7/UCOP_ressources_photos.xlsx")
 
 
 
