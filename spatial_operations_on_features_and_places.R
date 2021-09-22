@@ -185,7 +185,7 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(3001:3500) %>%
+  slice(3501:4000) %>%
   arrange(OS_Number)
 
 
@@ -242,10 +242,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_7/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_8/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_7/intersect_indetermines_sides_jg.gpkg") %>%
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_8/intersect_indetermines_sides_jg.gpkg") %>%
   st_transform(crs = 32637)
 
 ### heritage features : spatial data ###
@@ -290,7 +290,7 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   select(-pas_de_geom)
 
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_7/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_8/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 
@@ -317,7 +317,13 @@ donnees_sig_lines <- donnees_sig_lines %>%
   # si non, transformer en réel multilinestring car cela a du sens
   st_cast(., "LINESTRING")
 
-st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_7/donnees_spatiales_features.gpkg",
+donnees_sig_lines <- donnees_sig_lines %>%
+  filter(FEATURE_ID %in% c("OS_04274", "OS_04258")) %>%
+  group_by(FEATURE_ID) %>%
+  summarise() %>%
+  st_cast("MULTILINESTRING")
+
+st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_8/donnees_spatiales_features.gpkg",
          layer = "lines", append=TRUE) # note: pour B6 > les linestrings ne correspondent plus à rien (non ajustement GIS avec DB)
 
 
