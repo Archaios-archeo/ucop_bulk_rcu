@@ -3,7 +3,7 @@ library(readxl)
 library(openxlsx)
 
 # data
-data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v4.xlsx")
+data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 
 # bulk 1 : photos
@@ -50,3 +50,28 @@ photos_bulk_4 %>%
   mutate(DESCRIPTION.E62 = paste0("photo of a ", str_to_lower(`Feature form`), ": ", str_to_lower(featInterpretationType))) -> photos_bulk_4
 
 write.xlsx(x = photos_bulk_4, file = "sorties/finales/500_features_bulk_4/photos_description_bulk_4.xlsx")
+
+
+
+# bulk 5 : photos
+photos_bulk_5 <- read_excel(path = "sorties/finales/500_features_bulk_5/UCOP_ressources_photos_bulk_number_5.xlsx", sheet = "NOT")
+
+photos_bulk_5 %>%
+  mutate(OS_Number = str_sub(string = CATALOGUE_ID.E42, start = 1, end = 8)) %>%
+  left_join(., y = data_2019_2020_1 %>%
+              select(OS_Number, `Feature form`, featInterpretationType)) %>%
+  mutate(DESCRIPTION.E62 = paste0("photo of a ", str_to_lower(`Feature form`), ": ", str_to_lower(featInterpretationType))) -> photos_bulk_5
+
+write.xlsx(x = photos_bulk_5, file = "sorties/finales/500_features_bulk_5/photos_description_bulk_5.xlsx")
+
+
+# bulk 6 : photos
+photos_bulk_6 <- read_excel(path = "sorties/finales/500_features_bulk_6/UCOP_ressources_photos_bulk_number_6.xlsx", sheet = "NOT")
+
+photos_bulk_6 %>%
+  mutate(OS_Number = str_sub(string = CATALOGUE_ID.E42, start = 1, end = 8)) %>%
+  left_join(., y = data_2019_2020_1 %>%
+              select(OS_Number, `Feature form`, featInterpretationType)) %>%
+  mutate(DESCRIPTION.E62 = paste0("photo of a ", str_to_lower(`Feature form`), ": ", str_to_lower(featInterpretationType))) -> photos_bulk_6
+
+write.xlsx(x = photos_bulk_6, file = "sorties/finales/500_features_bulk_6/photos_description_bulk_6.xlsx")
