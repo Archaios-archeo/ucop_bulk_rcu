@@ -12,7 +12,7 @@ source("bulk_functions.R")
 
 #### DATA SOURCES ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v4.xlsx")
+ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 # dernière MAJ des données SIG, envoyées par GG (au 18/03/2021)
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
@@ -185,7 +185,7 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(2001:2500) %>%
+  slice(2501:3000) %>%
   arrange(OS_Number)
 
 
@@ -242,10 +242,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_5/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_6/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_5/intersect_indetermines_sides_jg.gpkg") %>%
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_6/intersect_indetermines_sides_jg.gpkg") %>%
   st_transform(crs = 32637)
 
 ### heritage features : spatial data ###
@@ -290,15 +290,7 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   select(-pas_de_geom)
 
 
-# il ne faut pas que les qanats (partie donut et parte cratere soient fusionnées), donc : est-ce qu'il y en a ?
-donnees_sig_revues_500 %>% 
-  left_join(x = ., y = ucop_data_500, by = c("FEATURE_ID" = "OS_Number")) %>% 
-  select(FEATURE_ID, `Feature form`) %>% 
-  mutate(qanat = str_detect(string = `Feature form`, pattern = "Shaft")) %>% 
-  filter(qanat == TRUE)
-
-
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_5/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_6/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 
@@ -325,7 +317,7 @@ donnees_sig_lines <- donnees_sig_lines %>%
   # si non, transformer en réel multilinestring car cela a du sens
   st_cast(., "LINESTRING")
 
-st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_5/donnees_spatiales_features.gpkg",
-         layer = "lines", append=TRUE)
+st_write(obj = donnees_sig_lines, dsn = "sorties/finales/500_features_bulk_6/donnees_spatiales_features.gpkg",
+         layer = "lines", append=TRUE) # note: pour B6 > les linestrings ne correspondent plus à rien (non ajustement GIS avec DB)
 
 
