@@ -17,17 +17,17 @@ ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
   select(OS_Number, `People names`, `Feature form`, featInterpretationType, featFunctionType, `Description date`) %>%
-  slice(2001:2500) %>%
+  slice(2501:3000) %>%
   arrange(OS_Number)
 
 # spatial data for spatial coordinates
 heritage_place_gis <- st_read("sorties/finales/2019/heritage_places_2019.gpkg")
 
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_5/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
-heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_5/donnees_spatiales_features_jg.gpkg", layer = "lines")
+heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
-heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_5/donnees_spatiales_features_jg.gpkg", layer = "points")
+heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
 # inputs : as lists
@@ -67,7 +67,7 @@ for(i in 1:length(liste_files)){
 
 
 #### DB AND PHOTOS RELATIONS ####
-working_directory_photo <- paste0(working_directory, "/sorties/finales/500_features_bulk_5/photos/")
+working_directory_photo <- paste0(working_directory, "/sorties/finales/500_features_bulk_6/photos/")
 working_directory_photo_png <- list.files(path = working_directory_photo, pattern = "png$")
 
 
@@ -107,7 +107,7 @@ tableau_des_relations_photos_feature_hp <- relations %>%
 # sortie
 tableau_des_relations_photos_feature_hp <- list("RELATIONS" = tableau_des_relations_photos_feature_hp)
 openxlsx::write.xlsx(tableau_des_relations_photos_feature_hp, 
-                     "sorties/finales/500_features_bulk_5/UCOP_relations_photos_features_places.xlsx")
+                     "sorties/finales/500_features_bulk_6/UCOP_relations_photos_features_places.xlsx")
 
 
 #### BULK : PHOTOS ####
@@ -143,15 +143,15 @@ relations_bulk <- relations %>%
   #                         st_drop_geometry(),
   #                       by = "FEATURE_ID")
   # ) %>%
-  bind_rows(relations %>%
-              rename(FEATURE_ID = OS_Number) %>%
-              left_join(., y = heritage_features_points_gis %>%
-                          st_transform(x = ., crs = 4326) %>%
-                          filter(FEATURE_ID != "OS_01992") %>%
-                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
-                          st_drop_geometry(),
-                        by = "FEATURE_ID")
-  ) %>%
+  # bind_rows(relations %>%
+  #             rename(FEATURE_ID = OS_Number) %>%
+  #             left_join(., y = heritage_features_points_gis %>%
+  #                         st_transform(x = ., crs = 4326) %>%
+  #                         filter(FEATURE_ID != "OS_01992") %>%
+  #                         mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+  #                         st_drop_geometry(),
+  #                       by = "FEATURE_ID")
+  # ) %>%
   filter(!is.na(SPATIAL_COORDINATES_GEOMETRY.E47)) %>%
   arrange(FEATURE_ID) %>%
   unique()
@@ -224,7 +224,7 @@ list_of_datasets <- list("ImageDetails" = sortie_ImageDetails,
                          "ImageGroup" = sortie_ImageGroup)
 
 openxlsx::write.xlsx(list_of_datasets, 
-           file = "sorties/finales/500_features_bulk_5/UCOP_ressources_photos.xlsx")
+           file = "sorties/finales/500_features_bulk_6/UCOP_ressources_photos.xlsx")
 
 
 
