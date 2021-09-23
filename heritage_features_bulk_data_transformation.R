@@ -13,14 +13,14 @@ source("bulk_functions.R")
 ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(3001:3500) %>%
+  slice(3501:4000) %>%
   arrange(OS_Number)
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_8/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
-heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_6/donnees_spatiales_features_jg.gpkg", layer = "lines")
+heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_8/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
 heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "points")
 
@@ -383,7 +383,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_7/UCOP_heritage_features_bulk.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_8/UCOP_heritage_features_bulk.xlsx")
 
 rm(heritage_features_polygons_gis, heritage_features_polygons_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
    sortie_DescriptionGroup, sortie_FeatureFormGroup, sortie_GeometryGroup, sortie_InterpretationGroup,
@@ -736,7 +736,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_4/UCOP_heritage_features_bulk_lines.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_8/UCOP_heritage_features_bulk_lines.xlsx")
 
 
 rm(heritage_features_lines_gis, heritage_features_lines_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
