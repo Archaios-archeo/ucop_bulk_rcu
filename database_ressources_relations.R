@@ -234,9 +234,28 @@ openxlsx::write.xlsx(list_of_datasets,
 
 
 #### DATA SKETCHES ####
+# Data sources
+# general database
+ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
+
+ucop_data_500 <- ucop_data_2019_2020_1 %>%
+  select(OS_Number, `People names`, `Feature form`, featInterpretationType, featFunctionType, `Description date`) %>%
+  slice(501:5000) %>%
+  arrange(OS_Number)
+
+# spatial data for spatial coordinates
+heritage_place_gis <- st_read("sorties/finales/2019/heritage_places_2019.gpkg")
+
+heritage_features_polygons_gis <- st_read("sorties/finales/sketches_bulk_1_to_10/donnees_spatiales_features_jg.gpkg", layer = "polygons_ok")
+
+heritage_features_lines_gis <- st_read("sorties/finales/sketches_bulk_1_to_10/donnees_spatiales_features_jg.gpkg", layer = "lines")
+
+heritage_features_points_gis <- st_read("sorties/finales/sketches_bulk_1_to_10/donnees_spatiales_features_jg.gpkg", layer = "points_spatiaux")
+
+
 
 # specific directory
-working_directory_sketch <- paste0(working_directory, "/data/sketches/features_places_bulk_1/")
+working_directory_sketch <- paste0(working_directory, "/data/sketches/features_places_bulk_2_to_10/")
 working_directory_sketch_jpeg <- list.files(path = working_directory_sketch, pattern = "jpeg$")
 # il y a aussi du .png
 working_directory_sketch_png <- list.files(path = working_directory_sketch, pattern = "png$")
@@ -260,7 +279,7 @@ for(i in 1:length(liste_files)){
 
 
 #### DB AND SKETCHES RELATIONS ####
-working_directory_sketch <- paste0(working_directory, "/sorties/finales/500_features_bulk_1/sketches/")
+working_directory_sketch <- paste0(working_directory, "/sorties/finales/sketches_bulk_1_to_10/sketches/")
 working_directory_sketch_png <- list.files(path = working_directory_sketch, pattern = "png$")
 
 # table des relations des sketches avec renvois
@@ -293,7 +312,7 @@ relations <- liste_sketches %>%
 relations %>% filter(is.na(dans_db))
 
 
-# each heritage place/feature got a photo ?
+# each heritage place/feature got a sketch?
 ucop_data_500 %>%
   left_join(., y = liste_sketches, by = "OS_Number") %>%
   group_by_at(vars(-liste_sketches_dossier)) %>%
@@ -314,7 +333,7 @@ tableau_des_relations_sketches_feature_hp <- relations %>%
 # sortie
 tableau_des_relations_sketches_feature_hp <- list("RELATIONS" = tableau_des_relations_sketches_feature_hp)
 openxlsx::write.xlsx(tableau_des_relations_sketches_feature_hp, 
-                     "sorties/finales/500_features_bulk_1/UCOP_relations_sketches_features_places.xlsx", 
+                     "sorties/finales/sketches_bulk_1_to_10/UCOP_relations_sketches_features_places_2019_2020_1.xlsx", 
                      append = TRUE)
 
 
@@ -432,7 +451,7 @@ list_of_datasets <- list("ImageDetails" = sortie_ImageDetails,
                          "ImageGroup" = sortie_ImageGroup)
 
 write.xlsx(list_of_datasets, 
-           file = "sorties/finales/500_features_bulk_1/UCOP_ressources_sketches.xlsx", 
+           file = "sorties/finales/sketches_bulk_1_to_10/UCOP_ressources_sketches_2019_2020_1.xlsx", 
            append = TRUE)
 
 
