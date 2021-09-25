@@ -153,3 +153,28 @@ bulk_6 %>%
 
 write.xlsx(x = bulk_6, file = "sorties/finales/500_features_bulk_6/significance_bulk_6.xlsx")
 
+
+# adding significance to heritage places 2019
+hp_2019 <- read_excel(path = "sorties/finales/2019/UCOP_heritage_places_2019_update.xlsx",
+                            sheet = "NameGroup")
+hp_2019 <- hp_2019 %>%
+  bind_cols(read_excel(path = "sorties/finales/2019/UCOP_heritage_places_2019_update.xlsx",
+                       sheet = "DescriptionGroup"))
+
+hp_2019 %>%
+  left_join(x = ., y = data_2019_200_1 %>%
+              select(OS_Number, `Feature significance RCU`),
+            by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(GENERAL_DESCRIPTION_TYPE.E55 = paste0(GENERAL_DESCRIPTION_TYPE.E55, "|", "Summary of Significance")) %>%
+  mutate(GENERAL_DESCRIPTION.E62 = if_else(
+    condition = !is.na(`Feature significance RCU`), true = paste0(GENERAL_DESCRIPTION.E62, "|", `Feature significance RCU`),
+    paste0(GENERAL_DESCRIPTION.E62, "|", "x")
+  )) %>%
+  select(NAME.E41, GENERAL_DESCRIPTION_TYPE.E55, GENERAL_DESCRIPTION.E62) -> hp_2019
+
+write.xlsx(x = hp_2019, file = "sorties/finales/2019/significance_hp_2019.xlsx")
+
+
+
+
+
