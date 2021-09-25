@@ -5,21 +5,8 @@ library(readxl)
 identifiants_features <- read.csv(file = "EAMENA_2021-09-23_04-18-29.csv") %>%
   as_tibble()
 
-identifiants_photos_sketches <- read.csv(file = "EAMENA_2021-09-23_05-19-09.csv") %>%
-  as_tibble() %>%
-  bind_rows(read.csv(file = "EAMENA_2021-09-23_05-20-15.csv") %>%
-              as_tibble()) %>%
-  bind_rows(read.csv(file = "EAMENA_2021-09-23_05-25-51.csv") %>%
-              as_tibble()) %>%
-  bind_rows(read.csv(file = "EAMENA_2021-09-23_05-26-54.csv") %>%
-              as_tibble()) %>%
-  bind_rows(read.csv(file = "EAMENA_2021-09-23_05-28-01.csv") %>%
-              as_tibble()) %>%
-  bind_rows(read.csv(file = "EAMENA_2021-09-23_05-29-13.csv") %>%
-              as_tibble()) %>%
-  bind_rows(read.csv(file = "EAMENA_2021-09-23_05-31-47.csv") %>%
-              as_tibble()) %>%
-  unique()
+identifiants_photos_sketches <- read.csv(file = "EAMENA_2021-09-25_05-28-24.csv") %>%
+  as_tibble()
   
 
 # données initiales de relations photos & features
@@ -46,7 +33,7 @@ relations_photos <- relations_photos %>%
 # sortie
 relations_photos_liste <- list("RELATIONS" = relations_photos)
 openxlsx::write.xlsx(relations_photos_liste,
-                     "UCOP_relations_photos_features_places_bulk_7_Arches_ID.xlsx",
+                     "UCOP_relations_photos_features_places_bulk_7_Arches_ID_new_querry_sem_and_spat.xlsx",
                      append = TRUE)
 
 
