@@ -245,7 +245,8 @@ ucop_data_500 <- ucop_data_2019_2020_1 %>%
   arrange(OS_Number)
 
 # spatial data for spatial coordinates
-heritage_place_gis <- st_read("sorties/finales/2019/heritage_places_2019.gpkg")
+heritage_place_gis <- st_read("sorties/finales/2020_1/heritage_places_2020_1.gpkg") %>%
+  bind_rows(st_read("sorties/finales/2020_1/heritage_places_2020_1_qanats.gpkg"))
 
 heritage_features_polygons_gis <- st_read("sorties/finales/sketches_bulk_1_to_10/donnees_spatiales_features_jg.gpkg", layer = "polygons_ok")
 
@@ -253,7 +254,8 @@ heritage_features_lines_gis <- st_read("sorties/finales/sketches_bulk_1_to_10/do
 
 heritage_features_points_gis <- st_read("sorties/finales/sketches_bulk_1_to_10/donnees_spatiales_features_jg.gpkg", layer = "points_spatiaux")
 
-
+# inputs : as lists
+working_directory <- getwd()
 
 # specific directory
 working_directory_sketch <- paste0(working_directory, "/data/sketches/features_places_bulk_2_to_10/")
@@ -280,7 +282,7 @@ for(i in 1:length(liste_files)){
 
 
 #### DB AND SKETCHES RELATIONS ####
-working_directory_sketch <- paste0(working_directory, "/sorties/finales/sketches_bulk_1_to_10/sketches/")
+working_directory_sketch <- paste0(working_directory, "/sorties/finales/2020_1/sketches/")
 working_directory_sketch_png <- list.files(path = working_directory_sketch, pattern = "png$")
 
 # table des relations des sketches avec renvois
@@ -334,7 +336,7 @@ tableau_des_relations_sketches_feature_hp <- relations %>%
 # sortie
 tableau_des_relations_sketches_feature_hp <- list("RELATIONS" = tableau_des_relations_sketches_feature_hp)
 openxlsx::write.xlsx(tableau_des_relations_sketches_feature_hp, 
-                     "sorties/finales/sketches_bulk_1_to_10/UCOP_relations_sketches_features_places_2019_2020_1.xlsx", 
+                     "sorties/finales/2020_1/UCOP_relations_sketches_places_2019_2020_1.xlsx", 
                      append = TRUE)
 
 
