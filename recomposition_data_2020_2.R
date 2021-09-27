@@ -74,9 +74,31 @@ data_2020_2 %>%
   )) %>%
   mutate(Description = if_else(is.na(Description), "x", Description)) -> data_2020_2
 
+#### adding real names ####
+noms_des_gens <- read_excel(path = "data/liste_noms/liste_noms_abreviations.xlsx")
+
+noms_des_gens %>%
+  mutate(noms = paste0(Prénom, " ", Nom)) %>%
+  select(ABREVIATION, noms) -> noms_des_gens
+
+data_2020_2 <- data_2020_2 %>%
+  separate_rows(`People names`, sep = "\\|") %>%
+  left_join(x = ., y = noms_des_gens, by = c("People names" = "ABREVIATION")) %>%
+  mutate(`People names` = noms) %>%
+  select(-noms) %>%
+  filter(!is.na(`People names`)) %>%
+  group_by_at(vars(-`People names`)) %>%
+  summarise_at("People names", paste, collapse = "|") %>%
+  ungroup() %>%
+  relocate(`People names`, .after = surveyGrid) %>%
+  naniar::replace_with_na(replace = list(
+    `People names` = c("UCOP Team")
+  ))
 
 
-
-
+list_of_dataset <- list("DATA" = data_2020_2)
+write.xlsx(list_of_dataset, 
+           file = "data/BDD_OS_2020_2_v4.xlsx", 
+           append = TRUE)
 
 
