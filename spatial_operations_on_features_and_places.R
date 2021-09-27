@@ -12,7 +12,7 @@ source("bulk_functions.R")
 
 #### DATA SOURCES ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
+ucop_data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2_v4.xlsx")
 
 # dernière MAJ des données SIG, envoyées par GG (au 18/03/2021)
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
@@ -33,14 +33,23 @@ donnees_sig_lines <- st_read(dsn = "data/2021_01_features_general/feature_line.s
 
 #### HERITAGE PLACES ####
 # quelles d'hp sur 2020.1
-hp_2019_bdd <- ucop_data_2019_2020_1 %>%
-  filter(`Feature form` == "Multi-Component") %>%
-  filter(annee == "2020")
+hp_2020_2_bdd <- ucop_data_2020_2 %>%
+  filter(`Form arrangement` == "Clustered (Heritage Place)")
 
 # les hp dans le SIG : creating data
 heritage_place <- donnees_sig %>%
-  left_join(x = ., y = hp_2019_bdd, by = c("FEATURE_ID" = "OS_Number")) %>%
-  filter(`Feature form` == "Multi-Component")
+  left_join(x = ., y = ucop_data_2020_2, by = c("FEATURE_ID" = "OS_Number")) %>%
+  filter(`Form arrangement` == "Clustered (Heritage Place)")
+
+
+# Pas dans SIG:
+hp_2020_2_bdd %>%
+  left_join(x = ., y = donnees_sig %>%
+              select(FEATURE_ID), by = c("OS_Number" = "FEATURE_ID")) %>%
+  st_as_sf(.) %>%
+  filter(st_is_empty(.)) %>%
+  view()
+# il y en a 7 : essentiellement des qanats, donc à discuter avec Julien et Gaël du pourquoi du comment :)
 
 
 #### verification process ####
@@ -65,16 +74,11 @@ tm_shape(heritage_place_duplicated) + tm_polygons()
 
 # if necessary : suppress wrong objectID
 heritage_place <- heritage_place %>%
-  filter(OBJECTID_1 %ni% c("10679")) # 1 time
+  filter(OBJECTID_1 %ni% c("10127", "12052", "12053", "12486"))
 
-# in data 2020.1 an heritage place is composed by 2 polygons, need to merge them
-heritage_place <- heritage_place %>%
-  group_by(FEATURE_ID) %>%
-  summarise() %>%
-  left_join(x = ., y = hp_2019_bdd, by = c("FEATURE_ID" = "OS_Number"))
 
 # list of BDD heritage places not contain in GIS polygon data
-no_spatial_hp_data <- hp_2019_bdd %>%
+no_spatial_hp_data <- hp_2020_2_bdd %>%
   select(OS_Number) %>%
   left_join(., y = heritage_place %>% 
               select(FEATURE_ID) %>%
@@ -83,7 +87,7 @@ no_spatial_hp_data <- hp_2019_bdd %>%
             by = c("OS_Number" = "FEATURE_ID")) %>%
   filter(is.na(sig))
 
-write.xlsx(x = no_spatial_hp_data, file = "sorties/intermediaires/2020_1_pas_sig_heritage_place.xlsx", append = TRUE)
+write.xlsx(x = no_spatial_hp_data, file = "sorties/intermediaires/2020_2_pas_sig_heritage_place.xlsx", append = TRUE)
 rm(heritage_place_duplicated, id_hp_duplicated, no_spatial_hp_data)
 
 #### inclusion relations between heritage places and heritages features ####
@@ -94,7 +98,7 @@ hp_inclusion <- heritage_place %>%
 
 # lien buffer et requête sur base (prise en considération aussi de 2020-1 si création ensuite)
 donnees_sig_complete_bdd <- donnees_sig %>%
-  left_join(x = ., y = ucop_data_2019_2020_1, by = c("FEATURE_ID" = "OS_Number"))
+  left_join(x = ., y = ucop_data_2020_2, by = c("FEATURE_ID" = "OS_Number"))
 
 
 hp_inclusion <- st_join(x = hp_inclusion %>% 
@@ -121,7 +125,7 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
   unique()
 
 # sortie
-write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2020_1/2020_1_relations_features_places.xlsx")
+write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2020_2/2020_2_relations_features_places.xlsx")
 
 rm(hp_inclusion, donnees_sig_complete_bdd, tableau_des_relations_hp_os)
 
@@ -177,7 +181,7 @@ heritage_place_simple_polygon <- heritage_place_simple_polygon %>%
 
 
 # sortie
-st_write(heritage_place_simple_polygon, "sorties/finales/2020_1/heritage_places_2020_1_qanats.gpkg")
+st_write(heritage_place_simple_polygon, "sorties/finales/2020_2/heritage_places_2020_2.gpkg")
 
 
 rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)

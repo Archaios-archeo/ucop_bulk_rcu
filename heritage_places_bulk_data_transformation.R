@@ -11,20 +11,24 @@ source("bulk_functions.R")
 
 #### data sources ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
+ucop_data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2_v4.xlsx") %>%
+  arrange(OS_Number)
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_place_gis <- st_read("sorties/finales/2020_1/heritage_places_2020_1_qanats.gpkg")
+heritage_place_gis <- st_read("sorties/finales/2020_2/heritage_places_2020_2.gpkg")
 
 heritage_place_tibble <- heritage_place_gis %>%
   st_drop_geometry() %>%
-  left_join(., y = ucop_data_2019_2020_1, by = c("FEATURE_ID" = "OS_Number")) %>%
+  left_join(., y = ucop_data_2020_2, by = c("FEATURE_ID" = "OS_Number")) %>%
   mutate(length_ok = as.character(round(x = length_ok, digits = 2)),
          width_ok = as.character(round(x = width_ok, digits = 2))) %>%
-  as_tibble()
+  as_tibble() %>%
+  arrange(FEATURE_ID) %>%
+  filter(FEATURE_ID != "OS_07163")
 
-RELATIONS <- read_excel(path = "sorties/finales/2020_1/2020_1_relations_features_places_qanats.xlsx")
+RELATIONS <- read_excel(path = "sorties/finales/2020_2/2020_2_relations_features_places.xlsx") %>%
+  arrange(RESOURCEID_FROM)
 
 
 #### création du fichier pour le "bulk apload" ####
@@ -36,7 +40,7 @@ lien_descripteurs <- read.csv("data/relations_rcu_idiha_ucop_features.csv", head
 
 ## Réorganisation des données en entrée pour correspondre au différentes feuilles demandées par la RCU dans IDIHA
 data_pivot <- heritage_place_tibble %>%
-  select(-numero, -date_modif, -voie) %>%
+  select(-`Coordinate E`, -`Coordinate N`, -Length:-Height) %>%
   rowid_to_column("ID") %>% # pour faire un pivot_longer complet (avec toutes les colonnes initiales) ensuite
   pivot_longer(data = ., cols = -ID, 
                names_to = "ucop_real_name", 
@@ -68,6 +72,7 @@ sortie_zzAssessment <- data_pivot %>%
   # ajout systématique du nom du projet
   mutate(INVESTIGATOR_ROLE_TYPE.E55 = "UCOP Project") %>%
   # création de la colonne investigator qui est lié à un "pattern" systématique
+  mutate(ASSESSMENT_ACTIVITY_TYPE.E55 = "Field-based (Ground)") %>%
   repetition_pattern_n_exact(x = ., 
                              variable_a_bon_pattern = "INVESTIGATOR_NAME.E41", 
                              variable_revue = "INVESTIGATOR_ROLE_TYPE.E55") %>%
@@ -116,7 +121,7 @@ sortie_DescriptionGroup <- data_pivot %>%
     GENERAL_DESCRIPTION.E62
   )) %>%
   bind_cols(sortie_NameGroup) %>%
-  left_join(., y = ucop_data_2019_2020_1 %>%
+  left_join(., y = ucop_data_2020_2 %>%
               select(OS_Number, `Feature significance RCU`), 
             by = c("NAME.E41" = "OS_Number")) %>%
   mutate(GENERAL_DESCRIPTION_TYPE.E55 = paste0(GENERAL_DESCRIPTION_TYPE.E55, "|", "Summary of Significance")) %>%
@@ -143,7 +148,7 @@ sortie_PeriodGroup <- data_pivot %>%
   mutate(CULTURAL_PERIOD_CERTAINTY.I6 = case_when(
     CULTURAL_PERIOD_CERTAINTY.I6 == "Low" ~ "Possible",
     CULTURAL_PERIOD_CERTAINTY.I6 == "Medium" ~ "Probable",
-    CULTURAL_PERIOD_CERTAINTY.I6 == "High" ~ "Definite",
+    CULTURAL_PERIOD_CERTAINTY.I6 %in% c("high", "High") ~ "Definite",
     TRUE ~  CULTURAL_PERIOD_CERTAINTY.I6
   )) %>%
   select(-ID) %>%
@@ -274,6 +279,7 @@ sortie_NOT <- data_pivot %>%
 
 # GeometryGroup : feuille demandée par la RCU
 sortie_GeometryGroup <- heritage_place_gis %>%
+  # filter(FEATURE_ID != "OS_07163") %>%
   st_transform(x = ., crs = 4326) %>%
   select(geom) %>%
   mutate(GEOMETRIC_PLACE_EXPRESSION.SP5 = lwgeom::st_astext(geom)) %>%
@@ -310,6 +316,9 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "ThreatGroup"  = sorties_ThreatGroup,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "NOT" = sortie_NOT)
-write.xlsx(list_of_datasets, file = "sorties/finales/2020_1/UCOP_heritage_places_2020_1_qanats.xlsx", append = TRUE)
+# 
+# list_of_geom <- list("GeometryGroup" = sortie_GeometryGroup)
+
+write.xlsx(list_of_geom, file = "sorties/finales/2020_2/UCOP_heritage_places_2020_2_geometry.xlsx", append = TRUE)
 
 
