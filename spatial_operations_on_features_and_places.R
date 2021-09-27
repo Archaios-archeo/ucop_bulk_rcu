@@ -37,6 +37,9 @@ hp_2019_bdd <- ucop_data_2019_2020_1 %>%
   filter(`Feature form` == "Multi-Component") %>%
   filter(annee == "2020")
 
+hp_2019_bdd <- ucop_data_2019_2020_1 %>%
+  filter(OS_Number %in% c("OS_01022", "OS_01025", "OS_04380", "OS_04381"))
+
 # les hp dans le SIG : creating data
 heritage_place <- donnees_sig %>%
   left_join(x = ., y = hp_2019_bdd, by = c("FEATURE_ID" = "OS_Number")) %>%
@@ -175,8 +178,15 @@ bounding_box_tibble <- bounding_box_tibble %>%
 heritage_place_simple_polygon <- heritage_place_simple_polygon %>%
   bind_cols(bounding_box_tibble)
 
+heritage_place_simple_polygon %>%
+  mutate(width_ok = case_when(
+    FEATURE_ID == "OS_04380" ~ 25,
+    FEATURE_ID == "OS_04381" ~ 35,
+    TRUE ~ width_ok
+  )) -> heritage_place_simple_polygon
+
 # sortie
-st_write(heritage_place_simple_polygon, "sorties/finales/2020_1/heritage_places_2020_1.gpkg")
+st_write(heritage_place_simple_polygon, "sorties/finales/2020_1/heritage_places_2020_1_qanats.gpkg")
 
 
 rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
