@@ -15,7 +15,7 @@ ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_place_gis <- st_read("sorties/finales/2020_1/heritage_places_2020_1.gpkg")
+heritage_place_gis <- st_read("sorties/finales/2020_1/heritage_places_2020_1_qanats.gpkg")
 
 heritage_place_tibble <- heritage_place_gis %>%
   st_drop_geometry() %>%
@@ -24,7 +24,7 @@ heritage_place_tibble <- heritage_place_gis %>%
          width_ok = as.character(round(x = width_ok, digits = 2))) %>%
   as_tibble()
 
-RELATIONS <- read_excel(path = "sorties/finales/2020_1/2020_1_relations_features_places.xlsx")
+RELATIONS <- read_excel(path = "sorties/finales/2020_1/2020_1_relations_features_places_qanats.xlsx")
 
 
 #### création du fichier pour le "bulk apload" ####
@@ -310,6 +310,6 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "ThreatGroup"  = sorties_ThreatGroup,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "NOT" = sortie_NOT)
-write.xlsx(list_of_datasets, file = "sorties/finales/2020_1/UCOP_heritage_places_2020_1.xlsx", append = TRUE)
+write.xlsx(list_of_datasets, file = "sorties/finales/2020_1/UCOP_heritage_places_2020_1_qanats.xlsx", append = TRUE)
 
 
