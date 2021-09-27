@@ -352,32 +352,32 @@ relations_bulk <- relations %>%
               mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
               st_drop_geometry(),
             by = "FEATURE_ID") %>%
-  bind_rows(relations %>%
-              rename(FEATURE_ID = OS_Number) %>%
-              left_join(., y = heritage_features_polygons_gis %>%
-                          st_centroid(.) %>%
-                          st_transform(x = ., crs = 4326) %>%
-                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
-                          st_drop_geometry(),
-                        by = "FEATURE_ID")
-  ) %>%
-  bind_rows(relations %>%
-              rename(FEATURE_ID = OS_Number) %>%
-              left_join(., y = heritage_features_lines_gis %>%
-                          st_centroid(.) %>%
-                          st_transform(x = ., crs = 4326) %>%
-                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
-                          st_drop_geometry(),
-                        by = "FEATURE_ID")
-  ) %>%
-  bind_rows(relations %>%
-              rename(FEATURE_ID = OS_Number) %>%
-              left_join(., y = heritage_features_points_gis %>%
-                          st_transform(x = ., crs = 4326) %>%
-                          mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
-                          st_drop_geometry(),
-                        by = "FEATURE_ID")
-  ) %>%
+  # bind_rows(relations %>%
+  #             rename(FEATURE_ID = OS_Number) %>%
+  #             left_join(., y = heritage_features_polygons_gis %>%
+  #                         st_centroid(.) %>%
+  #                         st_transform(x = ., crs = 4326) %>%
+  #                         mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+  #                         st_drop_geometry(),
+  #                       by = "FEATURE_ID")
+  # ) %>%
+  # bind_rows(relations %>%
+  #             rename(FEATURE_ID = OS_Number) %>%
+  #             left_join(., y = heritage_features_lines_gis %>%
+  #                         st_centroid(.) %>%
+  #                         st_transform(x = ., crs = 4326) %>%
+  #                         mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+  #                         st_drop_geometry(),
+  #                       by = "FEATURE_ID")
+  # ) %>%
+  # bind_rows(relations %>%
+  #             rename(FEATURE_ID = OS_Number) %>%
+  #             left_join(., y = heritage_features_points_gis %>%
+  #                         st_transform(x = ., crs = 4326) %>%
+  #                         mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+  #                         st_drop_geometry(),
+  #                       by = "FEATURE_ID")
+  # ) %>%
   filter(!is.na(SPATIAL_COORDINATES_GEOMETRY.E47)) %>%
   arrange(FEATURE_ID)
 
@@ -403,13 +403,12 @@ sortie_NOT <- relations_bulk %>%
          IMAGERY_DATE_OF_PUBLICATION.E50 = as.character(Sys.Date()),
          RIGHT_TYPE.E55 = "Copyright (All Rights Reserved)",
          DESCRIPTION.E62 = str_c("sketch of a ", str_to_lower(`Feature form`), ": ", str_to_lower(featInterpretationType), sep = "")) %>%
-  select(-FEATURE_ID:-featFunctionType, -dans_db, -n, -ID) %>%
   relocate(CATALOGUE_ID.E42, .after = INFORMATION_CARRIER_FORMAT_TYPE.E55) %>%
   relocate(DATE_OF_ACQUISITION.E50, .before = IMAGERY_DATE_OF_PUBLICATION.E50) %>%
   relocate(SPATIAL_COORDINATES_GEOMETRY.E47, .after = RIGHT_TYPE.E55) %>%
   mutate(duplicata_png = duplicated(x = CATALOGUE_ID.E42)) %>%
   filter(duplicata_png == FALSE) %>%
-  select(-duplicata_png)
+  select(INFORMATION_RESOURCE_TYPE.E55:DESCRIPTION.E62)
   
 # à simplifier avec fonction générale
 ligne_precedente <- seq(1, nrow(sortie_NOT), 1) - 1
@@ -454,7 +453,7 @@ list_of_datasets <- list("ImageDetails" = sortie_ImageDetails,
                          "ImageGroup" = sortie_ImageGroup)
 
 write.xlsx(list_of_datasets, 
-           file = "sorties/finales/sketches_bulk_1_to_10/UCOP_ressources_sketches_2019_2020_1.xlsx", 
+           file = "sorties/finales/2020_1/UCOP_ressources_sketches_hp_2020_1.xlsx", 
            append = TRUE)
 
 
