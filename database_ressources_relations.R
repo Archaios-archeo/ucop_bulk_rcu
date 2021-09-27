@@ -126,15 +126,15 @@ relations_bulk <- relations %>%
               mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
               st_drop_geometry(),
             by = "FEATURE_ID") %>%
-  # bind_rows(relations %>%
-  #             rename(FEATURE_ID = OS_Number) %>%
-  #             left_join(., y = heritage_features_polygons_gis %>%
-  #               st_centroid(.) %>%
-  #               st_transform(x = ., crs = 4326) %>%
-  #               mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
-  #               st_drop_geometry(),
-  #             by = "FEATURE_ID")
-  # ) %>%
+  bind_rows(relations %>%
+              rename(FEATURE_ID = OS_Number) %>%
+              left_join(., y = heritage_features_polygons_gis %>%
+                st_centroid(.) %>%
+                st_transform(x = ., crs = 4326) %>%
+                mutate(SPATIAL_COORDINATES_GEOMETRY.E47 = lwgeom::st_astext(geom)) %>%
+                st_drop_geometry(),
+              by = "FEATURE_ID")
+  ) %>%
   # bind_rows(relations %>%
   #             rename(FEATURE_ID = OS_Number) %>%
   #             left_join(., y = heritage_features_lines_gis %>%
