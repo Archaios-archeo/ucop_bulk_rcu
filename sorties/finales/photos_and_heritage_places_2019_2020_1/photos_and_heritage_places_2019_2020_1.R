@@ -1,6 +1,15 @@
 library(tidyverse)
 library(readxl)
 
+#### Data source ####
+heritage_places_2019_2020_1 <- read_excel(path = "UCOP_heritage_places_2019_update.xlsx", sheet = "NameGroup") %>%
+  bind_rows(read_excel(path = "UCOP_heritage_places_2020_1_compilation.xlsx", sheet = "NameGroup"))
+
+heritage_places_2019_2020_1 %>%
+  select(NAME.E41) %>%
+  mutate(heritage_place = "oui") -> heritage_places_2019_2020_1
+
+#### Relations photographies et heritage places ####
 compilation_relations_bulk_1_to_10 <- read_excel(path = "photos/UCOP_relations_photos_features_places_bulk_1.xlsx") %>%
   bind_rows(read_excel(path = "photos/UCOP_relations_photos_features_places_bulk_number_10.xlsx")) %>%
   bind_rows(read_excel(path = "photos/UCOP_relations_photos_features_places_bulk_number_2.xlsx")) %>%
@@ -13,14 +22,6 @@ compilation_relations_bulk_1_to_10 <- read_excel(path = "photos/UCOP_relations_p
   bind_rows(read_excel(path = "photos/UCOP_relations_photos_features_places_bulk_number_9.xlsx")) %>%
   bind_rows(read_excel(path = "photos/UCOP_relations_photos_places_2020_1.xlsx"))
 
-heritage_places_2019_2020_1 <- read_excel(path = "UCOP_heritage_places_2019_update.xlsx", sheet = "NameGroup") %>%
-  bind_rows(read_excel(path = "UCOP_heritage_places_2020_1_compilation.xlsx", sheet = "NameGroup"))
-
-heritage_places_2019_2020_1 %>%
-  select(NAME.E41) %>%
-  mutate(heritage_place = "oui") -> heritage_places_2019_2020_1
-
-#### Relations photographies et heritage places ####
 compilation_relations_bulk_1_to_10 %>%
   left_join(x = ., y = heritage_places_2019_2020_1, by = c("RESOURCEID_TO" = "NAME.E41")) %>%
   filter(!is.na(heritage_place)) %>%
@@ -72,4 +73,21 @@ openxlsx::write.xlsx(relations_photos_liste,
 
 
 
+#### Relations sketches et heritage places ####
+compilation_relations_sktches <- read_excel(path = "sketches/UCOP_relations_sketches_features_places_bulk_1.xlsx") %>%
+  bind_rows(read_excel(path = "sketches/UCOP_relations_sketches_features_places_bulk_1.xlsx")) %>%
+  bind_rows(read_excel(path = "sketches/UCOP_relations_sketches_places_2020_1.xlsx"))
+
+compilation_relations_sktches %>%
+  left_join(x = ., y = heritage_places_2019_2020_1, by = c("RESOURCEID_TO" = "NAME.E41")) %>%
+  filter(!is.na(heritage_place)) %>%
+  select(-heritage_place) %>%
+  mutate(NOTES = paste0("Sketch of ", RESOURCEID_TO)) %>%
+  unique() -> compilation_relations_bulk_1_to_10
+
+# sortie
+relations_photos_liste <- list("RELATIONS" = compilation_relations_sktches)
+openxlsx::write.xlsx(relations_photos_liste,
+                     "UCOP_relations_sketches_places_2019_2020_1.xlsx",
+                     append = TRUE)
 
