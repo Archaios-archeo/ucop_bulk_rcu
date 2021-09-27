@@ -2,7 +2,7 @@ library(readxl)
 library(openxlsx)
 library(tidyverse)
 
-data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2.xlsx")
+data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2_v2.xlsx")
 
 significance_2020_2 <- read_excel(path = "data/Feature_significance_2020_2.xlsx")
 
@@ -22,10 +22,10 @@ condition_assessment_2020_2 %>%
   filter(duplicata == TRUE)
 
 data_2020_2 %>%
-  left_join(x = ., y = significance_2020_2, by = "Feature ID") %>%
-  left_join(x = ., y = condition_assessment_2020_2, by = "Feature ID") -> data_2020_2_revu
+  left_join(x = ., y = significance_2020_2, by = c("OS_Number" = "Feature ID")) %>%
+  left_join(x = ., y = condition_assessment_2020_2, by = c("OS_Number" = "Feature ID")) -> data_2020_2_revu
 
-list_of_dataset <- list("DATA" = data_2020_2)
+list_of_dataset <- list("DATA" = data_2020_2_revu)
 write.xlsx(list_of_dataset, 
-           file = "data/BDD_OS_2020_2_v2.xlsx", 
+           file = "data/BDD_OS_2020_2_v3.xlsx", 
            append = TRUE)
