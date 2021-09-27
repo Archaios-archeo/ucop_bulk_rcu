@@ -32,10 +32,10 @@ donnees_sig_lines <- st_read(dsn = "data/2021_01_features_general/feature_line.s
 
 
 #### HERITAGE PLACES ####
-# quelles d'hp sur 2019
+# quelles d'hp sur 2020.1
 hp_2019_bdd <- ucop_data_2019_2020_1 %>%
   filter(`Feature form` == "Multi-Component") %>%
-  filter(annee == "2019")
+  filter(annee == "2020")
 
 # les hp dans le SIG : creating data
 heritage_place <- donnees_sig %>%
@@ -65,9 +65,9 @@ tm_shape(heritage_place_duplicated) + tm_polygons()
 
 # if necessary : suppress wrong objectID
 heritage_place <- heritage_place %>%
-  filter(OBJECTID_1 %ni% c("5646", "5647", "5648")) # 3 time, same undeterminated relation polygon between 2 walls
+  filter(OBJECTID_1 %ni% c("10679")) # 1 time
 
-# in data 2019 an heritage place is composed by 2 polygons, need to merge them
+# in data 2020.1 an heritage place is composed by 2 polygons, need to merge them
 heritage_place <- heritage_place %>%
   group_by(FEATURE_ID) %>%
   summarise() %>%
@@ -83,7 +83,7 @@ no_spatial_hp_data <- hp_2019_bdd %>%
             by = c("OS_Number" = "FEATURE_ID")) %>%
   filter(is.na(sig))
 
-write.xlsx(x = no_spatial_hp_data, file = "sorties/intermediaires/2019_pas_sig_heritage_place.xlsx", append = TRUE)
+write.xlsx(x = no_spatial_hp_data, file = "sorties/intermediaires/2020_1_pas_sig_heritage_place.xlsx", append = TRUE)
 rm(heritage_place_duplicated, id_hp_duplicated, no_spatial_hp_data)
 
 #### inclusion relations between heritage places and heritages features ####
@@ -121,7 +121,7 @@ tableau_des_relations_hp_os <- hp_inclusion %>%
   unique()
 
 # sortie
-write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2019/2019_relations_features_places.xlsx")
+write.xlsx(tableau_des_relations_hp_os, "sorties/finales/2020_1/2020_1_relations_features_places.xlsx")
 
 rm(hp_inclusion, donnees_sig_complete_bdd, tableau_des_relations_hp_os)
 
@@ -176,7 +176,7 @@ heritage_place_simple_polygon <- heritage_place_simple_polygon %>%
   bind_cols(bounding_box_tibble)
 
 # sortie
-st_write(heritage_place_simple_polygon, "sorties/finales/2019/heritage_places_2019.gpkg")
+st_write(heritage_place_simple_polygon, "sorties/finales/2020_1/heritage_places_2020_1.gpkg")
 
 
 rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)

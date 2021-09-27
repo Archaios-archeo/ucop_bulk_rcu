@@ -11,11 +11,11 @@ source("bulk_functions.R")
 
 #### data sources ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v3.xlsx")
+ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_place_gis <- st_read("sorties/finales/2019/heritage_places_2019.gpkg")
+heritage_place_gis <- st_read("sorties/finales/2020_1/heritage_places_2020_1.gpkg")
 
 heritage_place_tibble <- heritage_place_gis %>%
   st_drop_geometry() %>%
@@ -24,7 +24,7 @@ heritage_place_tibble <- heritage_place_gis %>%
          width_ok = as.character(round(x = width_ok, digits = 2))) %>%
   as_tibble()
 
-RELATIONS <- read_excel(path = "sorties/finales/2019/2019_relations_features_places.xlsx")
+RELATIONS <- read_excel(path = "sorties/finales/2020_1/2020_1_relations_features_places.xlsx")
 
 
 #### création du fichier pour le "bulk apload" ####
@@ -66,7 +66,7 @@ sortie_zzAssessment <- data_pivot %>%
   # projet Archaios au sein d'IDIHA
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "UCOP Team", sep = "|")) %>% 
   # ajout systématique du nom du projet
-  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "IDIHA Project/RCU Staff") %>%
+  mutate(INVESTIGATOR_ROLE_TYPE.E55 = "UCOP Project") %>%
   # création de la colonne investigator qui est lié à un "pattern" systématique
   repetition_pattern_n_exact(x = ., 
                              variable_a_bon_pattern = "INVESTIGATOR_NAME.E41", 
@@ -85,7 +85,7 @@ sortie_zzAssessment <- data_pivot %>%
                              variable_revue = "ASSESSMENT_ACTIVITY_DATE.E49")  %>% 
   # application fonction de répétition des informations
   mutate(INVESTIGATOR_NAME.E41 = str_c(INVESTIGATOR_NAME.E41, "Julie Gravier", sep = "|"),
-         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "IDIHA Project/RCU Staff", sep = "|"),
+         INVESTIGATOR_ROLE_TYPE.E55 = str_c(INVESTIGATOR_ROLE_TYPE.E55, "UCOP Project", sep = "|"),
          ASSESSMENT_ACTIVITY_TYPE.E55 = str_c(ASSESSMENT_ACTIVITY_TYPE.E55, "Desk-based (Unspecified)", sep = "|"),
          ASSESSMENT_ACTIVITY_DATE.E49 = str_c(ASSESSMENT_ACTIVITY_DATE.E49, Sys.Date(), sep = "|")) 
   # ajout systématique obligatoire de mon propre nom en tant que travail de desk-based, à la date du code, et en tant que membre IDIHA
@@ -114,7 +114,14 @@ sortie_DescriptionGroup <- data_pivot %>%
     is.na(GENERAL_DESCRIPTION.E62),
     "x",
     GENERAL_DESCRIPTION.E62
-  ))
+  )) %>%
+  bind_cols(sortie_NameGroup) %>%
+  left_join(., y = ucop_data_2019_2020_1 %>%
+              select(OS_Number, `Feature significance RCU`), 
+            by = c("NAME.E41" = "OS_Number")) %>%
+  mutate(GENERAL_DESCRIPTION_TYPE.E55 = paste0(GENERAL_DESCRIPTION_TYPE.E55, "|", "Summary of Significance")) %>%
+  mutate(GENERAL_DESCRIPTION.E62 = paste0(GENERAL_DESCRIPTION.E62, "|", `Feature significance RCU`)) %>%
+  select(GENERAL_DESCRIPTION_TYPE.E55, GENERAL_DESCRIPTION.E62)
 
 
 
@@ -275,7 +282,7 @@ sortie_GeometryGroup <- heritage_place_gis %>%
   relocate(LOCATION_CERTAINTY.I6, .before = GEOMETRIC_PLACE_EXPRESSION.SP5)
 
 # verification
-tm_shape(st_as_sf(st_as_sfc(sortie_GeometryGroup$GEOMETRIC_PLACE_EXPRESSION.SP5))) + tm_polygons()
+tm_shape(st_as_sf(st_as_sfc(sortie_GeometryGroup$GEOMETRIC_PLACE_EXPRESSION.SP5))) + tm_polygons() + tmap_options(check.and.fix = TRUE)
 
 
 # MeasurementGroup : feuille demandée par la RCU
@@ -303,6 +310,6 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "ThreatGroup"  = sorties_ThreatGroup,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "NOT" = sortie_NOT)
-write.xlsx(list_of_datasets, file = "sorties/finales/2019/UCOP_heritage_places_2019.xlsx", append = TRUE)
+write.xlsx(list_of_datasets, file = "sorties/finales/2020_1/UCOP_heritage_places_2020_1.xlsx", append = TRUE)
 
 
