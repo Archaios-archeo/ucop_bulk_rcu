@@ -191,7 +191,7 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
 ucop_data_500 <- ucop_data_2020_2 %>%
-  slice(0001:0500) %>%
+  slice(0500:1000) %>% # not 501 because suppression of a row before
   arrange(OS_Number) %>%
   filter(`Form arrangement` != "Clustered (Heritage Place)")
 
@@ -206,6 +206,12 @@ murs_et_batis <- donnees_sig %>%
 
 # see and detect potential problems
 tm_shape(murs_et_batis) + tm_polygons()
+
+# there is empty polygons: les virer
+murs_et_batis <- murs_et_batis %>%
+  filter(FEATURE_ID != "OS_07513") %>%
+  filter(OBJECTID_1 != "10433")
+  
 
 gestion_indetermines <- donnees_sig %>%
   filter(TYPE %in% c("Undetermined", "Undetermi*"))
@@ -249,10 +255,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_11/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_12/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_11/intersect_indetermines_sides_jg.gpkg") %>%
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_12/intersect_indetermines_sides_jg.gpkg") %>%
   st_transform(crs = 32637)
 
 ### heritage features : spatial data ###
@@ -297,7 +303,7 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   select(-pas_de_geom)
 
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_11/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_12/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 
@@ -309,7 +315,7 @@ donnees_sig_points <- donnees_sig_points %>%
   filter(ucop_500 == "oui") %>%
   select(FEATURE_ID)
 
-st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_7/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_points, dsn = "sorties/finales/500_features_bulk_12/donnees_spatiales_features.gpkg", 
          layer = "points", append=TRUE)
 
 
