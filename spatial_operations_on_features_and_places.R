@@ -12,7 +12,8 @@ source("bulk_functions.R")
 
 #### DATA SOURCES ####
 # general database
-ucop_data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2_v4.xlsx")
+ucop_data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2_v4.xlsx") %>%
+  arrange(OS_Number)
 
 # dernière MAJ des données SIG, envoyées par GG (au 18/03/2021)
 donnees_sig <- read_sf(dsn = "data/2021_01_features_general/export_2020_2_MAJ.shp", 
@@ -189,9 +190,10 @@ rm(bounding_box_sortie, bounding_box_tibble, bounding_box, heritage_place)
 
 #### HERITAGE FEATURES ####
 # sélection des 500 premières features (versement par blocs)
-ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(4501:5000) %>%
-  arrange(OS_Number)
+ucop_data_500 <- ucop_data_2020_2 %>%
+  slice(0001:0500) %>%
+  arrange(OS_Number) %>%
+  filter(`Form arrangement` != "Clustered (Heritage Place)")
 
 
 #### gestion des polygones "relation indéterminée" ####
@@ -247,10 +249,10 @@ relation <- murs_et_batis_sides %>%
 
 tm_shape(relation) + tm_polygons()
 
-st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_10/intersect_indetermines_sides.gpkg", append=FALSE)
+st_write(obj = relation, dsn = "sorties/intermediaires/500_features_bulk_11/intersect_indetermines_sides.gpkg", append=FALSE)
 # probably need review on GIS (see documentation "polygones_indetermines_unis_heritage_feature.docx")
 
-relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_10/intersect_indetermines_sides_jg.gpkg") %>%
+relation_revues <- st_read(dsn = "sorties/intermediaires/500_features_bulk_11/intersect_indetermines_sides_jg.gpkg") %>%
   st_transform(crs = 32637)
 
 ### heritage features : spatial data ###
@@ -295,7 +297,7 @@ donnees_sig_revues_500 <- donnees_sig_revues_500 %>%
   select(-pas_de_geom)
 
 
-st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_10/donnees_spatiales_features.gpkg", 
+st_write(obj = donnees_sig_revues_500, dsn = "sorties/finales/500_features_bulk_11/donnees_spatiales_features.gpkg", 
          layer = "polygons", append=FALSE)
 
 

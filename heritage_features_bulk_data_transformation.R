@@ -10,29 +10,29 @@ source("bulk_functions.R")
 
 #### DATA SOURCES ####
 # general database
-ucop_data_2019_2020_1 <- read_excel(path = "data/ucop_data_2019_2020_1_v5.xlsx")
+ucop_data_2020_2 <- read_excel(path = "data/BDD_OS_2020_2_v4.xlsx") %>%
+  arrange(OS_Number) %>%
+  mutate(Length = str_sub(string = Length, start = 1, end = 5)) %>%
+  mutate(Width = as.character(Width),
+         Height = as.character(Height))
 
-ucop_data_500 <- ucop_data_2019_2020_1 %>%
-  slice(4501:5000) %>%
+ucop_data_500 <- ucop_data_2020_2 %>%
+  slice(0001:0500) %>%
   arrange(OS_Number)
 
 # spatial data-compilation from heritage places spatial operations
 # see http://github.com/Archaios-archeo/ucop_bulk_rcu/blob/main/spatial_operations_on_features_and_places.R
-heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_10/donnees_spatiales_features_jg.gpkg", layer = "polygons")
+heritage_features_polygons_gis <- st_read("sorties/finales/500_features_bulk_11/donnees_spatiales_features_jg.gpkg", layer = "polygons")
 
 heritage_features_lines_gis <- st_read("sorties/finales/500_features_bulk_8/donnees_spatiales_features_jg.gpkg", layer = "lines")
 
 heritage_features_points_gis <- st_read("sorties/finales/500_features_bulk_7/donnees_spatiales_features_jg.gpkg", layer = "points")
 
 
-# il y a les "alternatives references", à savoir les V_ (via blabla) et P_ (pur plots blabla) qu'il faut reprendre et intégrer
-# dans les pour des questions de traçabilité de nos données
-correspondances_via_plot_os <- read_excel(path = "data/correspondances_os_plot_via.xlsx")
-
 #### POLYGONS PROCESS ####
 heritage_features_polygons_tibble <- heritage_features_polygons_gis %>%
   st_drop_geometry() %>%
-  left_join(., y = ucop_data_2019_2020_1, by = c("FEATURE_ID" = "OS_Number")) %>%
+  left_join(., y = ucop_data_2020_2, by = c("FEATURE_ID" = "OS_Number")) %>%
   as_tibble() %>%
   select(-n)
 
@@ -46,7 +46,7 @@ lien_descripteurs <- read.csv("data/relations_rcu_idiha_ucop_features.csv", head
 
 ## Réorganisation des données en entrée pour correspondre au différentes feuilles demandées par la RCU dans IDIHA
 data_pivot <- heritage_features_polygons_tibble %>%
-  select(-numero, -date_modif, -voie) %>%
+  select(-`Coordinate E`, -`Coordinate N`) %>%
   rowid_to_column("ID") %>% # pour faire un pivot_longer complet (avec toutes les colonnes initiales) ensuite
   pivot_longer(data = ., cols = -ID, 
                names_to = "ucop_real_name", 
@@ -78,6 +78,7 @@ sortie_zzAssessment <- data_pivot %>%
   # ajout systématique du nom du projet
   mutate(INVESTIGATOR_ROLE_TYPE.E55 = "UCOP Project") %>%
   # création de la colonne investigator qui est lié à un "pattern" systématique > (ajout LM en septembre 2021)
+  mutate(ASSESSMENT_ACTIVITY_TYPE.E55 = "Field-based (Ground)") %>%
   repetition_pattern_n_exact(x = ., 
                              variable_a_bon_pattern = "INVESTIGATOR_NAME.E41", 
                              variable_revue = "INVESTIGATOR_ROLE_TYPE.E55") %>%
@@ -106,16 +107,7 @@ sortie_NameGroup <- data_pivot %>%
   filter(rcu_onglet == "NameGroup") %>%
   pivot_wider(data = ., id_cols = ID, names_from = rcu_field_name, values_from = valeurs_ucop_origine) %>%
   select(-ID) %>%
-  mutate(NAME_TYPE.E55 = "Alternative Reference") %>%
-  left_join(., y = correspondances_via_plot_os, by = c("NAME.E41" = "OS_Number")) %>%
-  mutate(NAME.E41 = case_when(
-    !is.na(Old_Number) ~ paste0(NAME.E41, "|", Old_Number),
-    TRUE ~ NAME.E41
-  )) %>%
-  select(-Old_Number) %>%
-  repetition_pattern_n_exact(x = ., 
-                             variable_a_bon_pattern = "NAME.E41", 
-                             variable_revue = "NAME_TYPE.E55")
+  mutate(NAME_TYPE.E55 = "Alternative Reference")
 
 
 # DescriptionGroup : feuille demandée par la RCU
@@ -146,7 +138,8 @@ sortie_FeatureFormGroup <- data_pivot %>%
   select(-ID) %>%
   mutate(FORM_NUMBER.E55 = "1",
          FORM_ASSIGNMENT_INVESTIGATOR_NAME.E41 = "UCOP Team") %>%
-  relocate(FORM_ARRANGEMENT.E55, .after = FORM_SHAPE_TYPE.E55)
+  relocate(FORM_ARRANGEMENT.E55, .after = FORM_SHAPE_TYPE.E55) %>%
+  mutate(FORM_ARRANGEMENT.E55 = if_else(FORM_ARRANGEMENT.E55 == "Discrete (Feature)", "Discrete", FORM_ARRANGEMENT.E55))
 
 
 # InterpretationGroup : feuille demandée par la RCU
@@ -161,7 +154,7 @@ sortie_InterpretationGroup <- data_pivot %>%
   mutate(CULTURAL_PERIOD_CERTAINTY.I6 = case_when(
     CULTURAL_PERIOD_CERTAINTY.I6 == "Low" ~ "Possible",
     CULTURAL_PERIOD_CERTAINTY.I6 == "Medium" ~ "Probable",
-    CULTURAL_PERIOD_CERTAINTY.I6 == "High" ~ "Definite",
+    CULTURAL_PERIOD_CERTAINTY.I6 %in% c("High", "high") ~ "Definite",
     TRUE ~  CULTURAL_PERIOD_CERTAINTY.I6
   )) %>%
   mutate(ARCHAEOLOGICAL_FROM_DATE.E61 = "x",
@@ -218,7 +211,15 @@ sortie_InterpretationGroup <- data_pivot %>%
     false = CULTURAL_PERIOD_TYPE.I4)) %>%
   mutate(CULTURAL_PERIOD_DETAIL_TYPE.E55 = if_else(CULTURAL_PERIOD_DETAIL_TYPE.E55 == "Unknown|Late Ottoman|Unknown|Late Ottoman",
     true = "Unknown|Unknown|Late Ottoman|Late Ottoman",
-    false = CULTURAL_PERIOD_DETAIL_TYPE.E55))
+    false = CULTURAL_PERIOD_DETAIL_TYPE.E55))  %>%
+  # ajout again
+  mutate(CULTURAL_PERIOD_TYPE.I4 = if_else(
+    condition = CULTURAL_PERIOD_TYPE.I4 == "Islamic|Modern|Islamic|Modern",
+    true = "Islamic|Islamic|Modern|Modern",
+    false = CULTURAL_PERIOD_TYPE.I4)) %>%
+  mutate(CULTURAL_PERIOD_DETAIL_TYPE.E55 = if_else(CULTURAL_PERIOD_DETAIL_TYPE.E55 == "Late Ottoman|Unknown|Late Ottoman|Unknown",
+                                                   true = "Late Ottoman|Late Ottoman|Unknown|Unknown",
+                                                   false = CULTURAL_PERIOD_DETAIL_TYPE.E55))
 
 
 # AdminAreasGroup : feuille demandée par la RCU
@@ -316,6 +317,7 @@ sortie_ThreatGroup <- data_pivot %>%
     true = "Unknown",
     THREAT_TYPE.E55
   )) %>% # si NA dans la base de données > assignation en "Unknown" pour être en mesure d'appliquer les fonctions suivantes
+  mutate(THREAT_TYPE.E55 = if_else(THREAT_TYPE.E55 == "Building/Development", "Development", THREAT_TYPE.E55)) %>%
   repetition_pattern_n_exact(x = ., variable_a_bon_pattern = "THREAT_TYPE.E55", 
                              variable_revue = "POTENTIAL_IMPACT_TYPE.E55") %>%
   repetition_pattern_n_exact(x = ., variable_a_bon_pattern = "THREAT_TYPE.E55", 
@@ -339,8 +341,11 @@ sortie_ThreatGroup <- data_pivot %>%
                                                                    "Probable" = "4 - Probable",
                                                                    "Unlikely" = "1 - Unlikely",
                                                                    "Likely" = "3 - Likely",
-                                                                   "Certain" = "5 - Certain"))) %>%
-  select(-VULNERABILITY_TYPE.E55) # en fait, n'existe pas pour les heritage features
+                                                                   "Certain" = "5 - Certain",
+                                                                   "Unknown" = "Not Applicable"))) %>%
+  select(-VULNERABILITY_TYPE.E55) %>% # en fait, n'existe pas pour les heritage features
+  repetition_pattern_n_exact(x = ., variable_a_bon_pattern = "THREAT_TYPE.E55", 
+                             variable_revue = "THREAT_PROBABILITY_TYPE.E55")
 
 
 # GeometryGroup : feuille demandée par la RCU
@@ -383,7 +388,7 @@ list_of_datasets <- list("zzAssessment" = sortie_zzAssessment,
                          "zDisturbanceGroup" = sortie_zDisturbanceGroup,
                          "ThreatGroup" = sortie_ThreatGroup)
 
-openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_10/UCOP_heritage_features_bulk.xlsx")
+openxlsx::write.xlsx(list_of_datasets, file = "sorties/finales/500_features_bulk_11/UCOP_heritage_features_bulk.xlsx")
 
 rm(heritage_features_polygons_gis, heritage_features_polygons_tibble, sortie_NameGroup, sortie_AdminAreasGroup,
    sortie_DescriptionGroup, sortie_FeatureFormGroup, sortie_GeometryGroup, sortie_InterpretationGroup,
