@@ -26,3 +26,4 @@ perso_review_not_bulk_1.R
 data/correspondances_os_plot_via.csv
 data/2021_01_features_general/symbologie.qgz
 *.csv
+*.accdb
